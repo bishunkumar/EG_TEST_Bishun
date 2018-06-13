@@ -1,0 +1,50 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1528888892550
+Build-Jdk: 1.8.0_144
+Built-By: bishun.kumar
+Bundle-Description: Core bundle for bishunProject
+Bundle-ManifestVersion: 2
+Bundle-Name: bishunProject - Core
+Bundle-SymbolicName: com.org.bishunProject.core
+Bundle-Version: 0.0.1.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: com.org.aem.core.filters;uses:="javax.servlet";version="
+ 0.0.1",com.org.aem.core.listeners;uses:="org.osgi.service.event";versio
+ n="0.0.1",com.org.aem.core.models;uses:="javax.annotation,javax.inject,
+ org.apache.sling.api.resource,org.apache.sling.models.annotations";vers
+ ion="0.0.1",com.org.aem.core;version="1.0",com.org.aem.core.schedulers;
+ version="0.0.1",com.org.aem.core.services;uses:="com.day.cq.search,com.
+ org.aem.core.models,org.apache.sling.api.resource";version="0.0.1",com.
+ org.aem.core.servlets;uses:="javax.servlet,org.apache.sling.api,org.apa
+ che.sling.api.resource,org.apache.sling.api.servlets";version="0.0.1",u
+ tils;version="0.0.1"
+Import-Package: javax.inject;version="0.0.0",com.day.cq.search;version="
+ [1.1,2)",com.day.cq.search.result;version="[1.1,2)",javax.annotation,ja
+ vax.jcr;version="[2.0,3)",javax.servlet,org.apache.sling.api;version="[
+ 2.3,3)",org.apache.sling.api.request;version="[2.4,3)",org.apache.sling
+ .api.resource;version="[2.5,3)",org.apache.sling.api.servlets;version="
+ [2.1,3)",org.apache.sling.commons.osgi;version="[2.2,3)",org.apache.sli
+ ng.models.annotations;version="[1.0,2)",org.apache.sling.settings;versi
+ on="[1.3,2)",org.osgi.service.event;version="[1.2,2)",org.slf4j;version
+ ="[1.5,2)"
+Provide-Capability: osgi.service;effective:=active;objectClass="javax.se
+ rvlet.Servlet";service.vendor=Adobe,osgi.service;effective:=active;obje
+ ctClass="com.org.aem.core.services.SearchUser";service.vendor=Adobe,osg
+ i.service;effective:=active;objectClass="java.lang.Runnable";scheduler.
+ expression="*/30 * * * * ?";scheduler.concurrent=false;service.vendor=A
+ dobe,osgi.service;effective:=active;objectClass="javax.servlet.Filter";
+ service.ranking=-700;sling.filter.scope=REQUEST;service.vendor=Adobe,os
+ gi.service;effective:=active;objectClass="org.osgi.service.event.EventH
+ andler";event.topics="org/apache/sling/api/resource/Resource/*";service
+ .vendor=Adobe
+Require-Capability: osgi.service;effective:=active;filter:="(objectClass
+ =com.day.cq.search.QueryBuilder)",osgi.service;effective:=active;filter
+ :="(objectClass=org.apache.sling.api.resource.ResourceResolverFactory)"
+ ,osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+Service-Component: OSGI-INF/com.org.aem.core.servlets.SimpleServlet.xml,
+ OSGI-INF/com.org.aem.core.filters.LoggingFilter.xml,OSGI-INF/com.org.ae
+ m.core.services.SearchService.xml,OSGI-INF/com.org.aem.core.listeners.S
+ impleResourceListener.xml,OSGI-INF/com.org.aem.core.servlets.SaveValesS
+ ervlet.xml,OSGI-INF/com.org.aem.core.schedulers.SimpleScheduledTask.xml
+Sling-Model-Packages: com.org.aem.core
+Tool: Bnd-2.3.0.201405100607

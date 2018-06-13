@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1528888896256
+Build-Jdk: 1.8.0_144
+Built-By: bishun.kumar
+Bundle-Description: Bundles for Integration Tests for bishunProject
+Bundle-ManifestVersion: 2
+Bundle-Name: bishunProject - Integration Tests Bundles
+Bundle-SymbolicName: com.org.bishunProject.it.tests
+Bundle-Version: 0.0.1.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: com.org.aem.it.tests;uses:="org.apache.sling.junit.annot
+ ations,org.junit,org.junit.runner";version="0.0.1"
+Import-Package: com.org.aem.core.models;version="[0.0,1)",org.apache.sli
+ ng.junit.annotations;version="[1.0,2)",org.apache.sling.settings;versio
+ n="[1.3,2)",org.junit,org.junit.runner
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+Sling-Test-Regexp: .*Test
+Tool: Bnd-2.3.0.201405100607

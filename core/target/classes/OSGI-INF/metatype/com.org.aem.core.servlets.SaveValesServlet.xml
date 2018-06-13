@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/com.org.aem.core.servlets.SaveValesServlet">
+    <OCD id="com.org.aem.core.servlets.SaveValesServlet" name="%com.org.aem.core.servlets.SaveValesServlet.name" description="%com.org.aem.core.servlets.SaveValesServlet.description"/>
+    <Designate pid="com.org.aem.core.servlets.SaveValesServlet">
+        <Object ocdref="com.org.aem.core.servlets.SaveValesServlet"/>
+    </Designate>
+</metatype:MetaData>
