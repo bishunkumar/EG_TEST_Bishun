@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspaceFilter version="1.0">
-    <filter root="/apps/bishunproject">
-        <exclude pattern="/apps/training/bishun/bishunproject/install" />
-    </filter>
-    <filter root="/apps/training/bishun/sling" />
-    <filter root="/etc/training/designs/bishunproject"/>
+    <filter root="/content/training/bishun/training_test1"/>
 </workspaceFilter>
