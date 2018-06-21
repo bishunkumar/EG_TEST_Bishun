@@ -14,7 +14,7 @@ import org.apache.sling.models.annotations.Optional;
 @Model(adaptables = Resource.class)
 public class MultiFieldModel {
 
-	ArrayList<FiledValuesPOJO> filedValues = new ArrayList<FiledValuesPOJO>();
+	ArrayList<FiledValuesPOJO> filedValues; 
 	
 	@Inject @Named("countries") @Default(values="No resourceType")
 	@Optional
@@ -24,6 +24,7 @@ public class MultiFieldModel {
 	
 	@PostConstruct
 	protected void init() {
+		filedValues = new ArrayList<FiledValuesPOJO>();
 		if(iItems != null && iItems.hasChildren()){
 			for (Resource resource : iItems.getChildren()){
 				if(resource != null){

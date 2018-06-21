@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/com.org.aem.core.servlets.NewsServlet">
+    <OCD id="com.org.aem.core.servlets.NewsServlet" name="%com.org.aem.core.servlets.NewsServlet.name" description="%com.org.aem.core.servlets.NewsServlet.description"/>
+    <Designate pid="com.org.aem.core.servlets.NewsServlet">
+        <Object ocdref="com.org.aem.core.servlets.NewsServlet"/>
+    </Designate>
+</metatype:MetaData>

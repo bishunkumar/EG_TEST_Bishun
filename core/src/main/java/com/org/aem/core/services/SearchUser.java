@@ -6,8 +6,8 @@ import com.org.aem.core.models.PagePOJO;
 import com.org.aem.core.models.UserPOJO;
 
 public interface SearchUser {
-	public ArrayList<UserPOJO>  getUsers(ArrayList<UserPOJO> userPOJO);
-	public ArrayList<PagePOJO>  getPages(ArrayList<PagePOJO> pagePOJO);
+	public ArrayList<UserPOJO>  getUsers();
+	public ArrayList<PagePOJO>  getPages();
 	public String  getMag();
 
 }

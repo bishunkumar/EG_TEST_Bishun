@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1528888892550
-Build-Jdk: 1.8.0_144
+Bnd-LastModified: 1529555372292
+Build-Jdk: 1.7.0_80
 Built-By: bishun.kumar
 Bundle-Description: Core bundle for bishunProject
 Bundle-ManifestVersion: 2
@@ -13,38 +13,55 @@ Export-Package: com.org.aem.core.filters;uses:="javax.servlet";version="
  n="0.0.1",com.org.aem.core.models;uses:="javax.annotation,javax.inject,
  org.apache.sling.api.resource,org.apache.sling.models.annotations";vers
  ion="0.0.1",com.org.aem.core;version="1.0",com.org.aem.core.schedulers;
- version="0.0.1",com.org.aem.core.services;uses:="com.day.cq.search,com.
- org.aem.core.models,org.apache.sling.api.resource";version="0.0.1",com.
- org.aem.core.servlets;uses:="javax.servlet,org.apache.sling.api,org.apa
- che.sling.api.resource,org.apache.sling.api.servlets";version="0.0.1",u
- tils;version="0.0.1"
-Import-Package: javax.inject;version="0.0.0",com.day.cq.search;version="
- [1.1,2)",com.day.cq.search.result;version="[1.1,2)",javax.annotation,ja
- vax.jcr;version="[2.0,3)",javax.servlet,org.apache.sling.api;version="[
- 2.3,3)",org.apache.sling.api.request;version="[2.4,3)",org.apache.sling
- .api.resource;version="[2.5,3)",org.apache.sling.api.servlets;version="
- [2.1,3)",org.apache.sling.commons.osgi;version="[2.2,3)",org.apache.sli
- ng.models.annotations;version="[1.0,2)",org.apache.sling.settings;versi
- on="[1.3,2)",org.osgi.service.event;version="[1.2,2)",org.slf4j;version
- ="[1.5,2)"
-Provide-Capability: osgi.service;effective:=active;objectClass="javax.se
- rvlet.Servlet";service.vendor=Adobe,osgi.service;effective:=active;obje
- ctClass="com.org.aem.core.services.SearchUser";service.vendor=Adobe,osg
- i.service;effective:=active;objectClass="java.lang.Runnable";scheduler.
- expression="*/30 * * * * ?";scheduler.concurrent=false;service.vendor=A
- dobe,osgi.service;effective:=active;objectClass="javax.servlet.Filter";
- service.ranking=-700;sling.filter.scope=REQUEST;service.vendor=Adobe,os
- gi.service;effective:=active;objectClass="org.osgi.service.event.EventH
- andler";event.topics="org/apache/sling/api/resource/Resource/*";service
- .vendor=Adobe
+ version="0.0.1",com.org.aem.core.services;uses:="com.adobe.granite.work
+ flow,com.adobe.granite.workflow.exec,com.adobe.granite.workflow.metadat
+ a,com.day.cq.mailer,com.day.cq.search,com.org.aem.core.models,org.apach
+ e.sling.api.resource,pojo";version="0.0.1",com.org.aem.core.servlets;us
+ es:="javax.servlet,org.apache.sling.api,org.apache.sling.api.resource,o
+ rg.apache.sling.api.servlets";version="0.0.1",pojo;version="0.0.1",util
+ s;uses:="javax.net.ssl";version="0.0.1"
+Import-Package: javax.inject;version="0.0.0",com.adobe.granite.workflow;
+ version="[1.0,2)",com.adobe.granite.workflow.exec;version="[1.0,2)",com
+ .adobe.granite.workflow.metadata;version="[1.0,2)",com.day.cq.mailer;ve
+ rsion="[5.8,6)",com.day.cq.search;version="[1.1,2)",com.day.cq.search.r
+ esult;version="[1.1,2)",com.google.gson;version="[2.3,3)",com.google.gs
+ on.annotations;version="[2.3,3)",javax.annotation,javax.jcr;version="[2
+ .0,3)",javax.net.ssl,javax.servlet,org.apache.commons.mail,org.apache.h
+ ttp,org.apache.http.client,org.apache.http.client.methods,org.apache.ht
+ tp.impl.client,org.apache.http.util,org.apache.sling.api;version="[2.3,
+ 3)",org.apache.sling.api.request;version="[2.4,3)",org.apache.sling.api
+ .resource;version="[2.5,3)",org.apache.sling.api.servlets;version="[2.1
+ ,3)",org.apache.sling.commons.osgi;version="[2.2,3)",org.apache.sling.m
+ odels.annotations;version="[1.0,2)",org.apache.sling.settings;version="
+ [1.3,2)",org.osgi.service.event;version="[1.2,2)",org.slf4j;version="[1
+ .5,2)"
+Provide-Capability: osgi.service;effective:=active;objectClass="com.adob
+ e.granite.workflow.exec.WorkflowProcess";service.description="Test Emai
+ l workflow process implementation.";service.vendor=Adobe;process.label=
+ "BISHUN EAMIL WORKFLOW",osgi.service;effective:=active;objectClass="jav
+ ax.servlet.Servlet";service.vendor=Adobe,osgi.service;effective:=active
+ ;objectClass="javax.servlet.Filter";service.ranking=-700;sling.filter.s
+ cope=REQUEST;service.vendor=Adobe,osgi.service;effective:=active;object
+ Class="org.osgi.service.event.EventHandler";event.topics="org/apache/sl
+ ing/api/resource/Resource/*";service.vendor=Adobe,osgi.service;effectiv
+ e:=active;objectClass="com.org.aem.core.services.SearchUser";service.ve
+ ndor=Adobe,osgi.service;effective:=active;objectClass="com.org.aem.core
+ .services.WebserviceResponse";service.vendor=Adobe,osgi.service;effecti
+ ve:=active;objectClass="java.lang.Runnable";scheduler.expression="*/30 
+ * * * * ?";scheduler.concurrent=false;service.vendor=Adobe
 Require-Capability: osgi.service;effective:=active;filter:="(objectClass
  =com.day.cq.search.QueryBuilder)",osgi.service;effective:=active;filter
- :="(objectClass=org.apache.sling.api.resource.ResourceResolverFactory)"
- ,osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
-Service-Component: OSGI-INF/com.org.aem.core.servlets.SimpleServlet.xml,
- OSGI-INF/com.org.aem.core.filters.LoggingFilter.xml,OSGI-INF/com.org.ae
- m.core.services.SearchService.xml,OSGI-INF/com.org.aem.core.listeners.S
- impleResourceListener.xml,OSGI-INF/com.org.aem.core.servlets.SaveValesS
- ervlet.xml,OSGI-INF/com.org.aem.core.schedulers.SimpleScheduledTask.xml
+ :="(objectClass=com.day.cq.mailer.MessageGatewayService)",osgi.service;
+ effective:=active;filter:="(objectClass=org.apache.sling.api.resource.R
+ esourceResolverFactory)",osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.
+ 6))"
+Service-Component: OSGI-INF/com.org.aem.core.services.SearchService.xml,
+ OSGI-INF/com.org.aem.core.servlets.NewsServlet.xml,OSGI-INF/com.org.aem
+ .core.services.WebserviceCall.xml,OSGI-INF/com.org.aem.core.listeners.S
+ impleResourceListener.xml,OSGI-INF/com.org.aem.core.services.MyEmailWor
+ kflow.xml,OSGI-INF/com.org.aem.core.filters.LoggingFilter.xml,OSGI-INF/
+ com.org.aem.core.servlets.SimpleServlet.xml,OSGI-INF/com.org.aem.core.s
+ ervlets.SaveValesServlet.xml,OSGI-INF/com.org.aem.core.schedulers.Simpl
+ eScheduledTask.xml
 Sling-Model-Packages: com.org.aem.core
 Tool: Bnd-2.3.0.201405100607
