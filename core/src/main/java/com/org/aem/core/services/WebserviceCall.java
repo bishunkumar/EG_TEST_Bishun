@@ -28,8 +28,8 @@ public class WebserviceCall implements WebserviceResponse{
 		ArrayList<ProductPOJO> productPOJOs = new ArrayList<ProductPOJO>();
 		try {
 		HttpClient client = HttpClientBuilder.create().build();
-		//HttpGet request = new HttpGet("https://dev.michelinswagat.com/OrderServices.asmx/FillTyre?P_Type=3&PatternName=&DealerCode=700000100&ProductLine=1");
-		HttpGet request = new HttpGet("https://dev.michelinswagat.com/wsMobileAppsV3.asmx/crmGetProductAll");
+		//HttpGet request = new HttpGet("URL");
+		HttpGet request = new HttpGet("");
 		
 		HttpResponse response = client.execute(request);
 		HttpEntity entity = response.getEntity();

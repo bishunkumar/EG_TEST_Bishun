@@ -61,7 +61,7 @@ public class MainClass {
 		 * System.out.println("BISHNUUUUUUUU"+e); e.printStackTrace(); }
 		 */
 
-		//String url ="https://dev.michelinswagat.com/wsMobileAppsV3.asmx/crmGetProductAll";
+		
 		String url ="https://newsapi.org/v2/top-headlines?country=in&category=technology&apiKey=f5227d7002ef45d889976bc0f6708628";
 		new GetHttpHit(url, responseInterface).execute();
 
