@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:vlt="http://www.day.com/jcr/vault/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:created="{Date}2018-07-25T08:57:21.921Z"
+    jcr:createdBy="admin"
+    jcr:description=""
+    jcr:lastModified="{Date}2018-07-25T08:57:21.921Z"
+    jcr:lastModifiedBy="admin"
+    jcr:primaryType="vlt:PackageDefinition"
+    buildCount="1"
+    builtWith="Adobe Experience Manager-6.1.0.20150507"
+    group="my_packages"
+    lastUnwrapped="{Date}2018-07-25T08:57:21.921Z"
+    lastUnwrappedBy="admin"
+    lastWrapped="{Date}2018-07-25T08:57:21.921Z"
+    lastWrappedBy="admin"
+    name="rte_backup"
+    version="1.0">
+    <filter jcr:primaryType="nt:unstructured">
+        <f0
+            jcr:primaryType="nt:unstructured"
+            mode="replace"
+            root="/etc/clientlibs/granite/coralui2/optional/rte"
+            rules="[]"/>
+    </filter>
+</jcr:root>
