@@ -657,6 +657,7 @@ CUI.rte.DomProcessor = function() {
                             var rowToMove = header.childNodes[i];
                             header.removeChild(rowToMove);
                             tBody.insertBefore(rowToMove, insertNode);
+                            insertNode = rowToMove;
                         }
                         nodeToCheck.removeChild(header);
                     }
@@ -2026,26 +2027,16 @@ CUI.rte.DomProcessor = function() {
          *         for example, an "img" element)
          */
         checkNamedAnchor: function(dom) {
-            if (com.ua.isWebKit) {
-                // on Webkit, anchors are edited as img elements with a marker
-                // attribute set accordingly
-                if (com.isTag(dom, "img")) {
-                    var nameReplacement = com.getAttribute(dom,
-                            com.A_NAME_REPLACEMENT_ATTRIB);
-                    if (nameReplacement != null) {
-                        return {
-                            "dom": dom,
-                            "name": nameReplacement,
-                            "isAnchorTag": false
-                        };
-                    }
-                }
-            } else {
-                if (com.isTag(dom, "a") && com.isAttribDefined(dom, "name")) {
+            // Anchors are edited as img elements with a marker
+            // attribute set accordingly
+            if (com.isTag(dom, "img")) {
+                var nameReplacement = com.getAttribute(dom,
+                        com.A_NAME_REPLACEMENT_ATTRIB);
+                if (nameReplacement != null) {
                     return {
                         "dom": dom,
-                        "name": dom.name,
-                        "isAnchorTag": true
+                        "name": nameReplacement,
+                        "isAnchorTag": false
                     };
                 }
             }
@@ -2054,8 +2045,8 @@ CUI.rte.DomProcessor = function() {
 
         /**
          * <p>Calculates the "screen estate" the specified nodes/offsets span.</p>
-         * <p>This method returns the top/left coordinates of the start node and the
-         * bottom/right coordinates of the end node if available or of the start node.</p>
+         * <p>This method returns the top coordinate of the start node and the
+         * bottom coordinate of the end node if available or of the start node.</p>
          * @param {CUI.rte.EditContext} context The edit context
          * @param {HTMLElement} startNode The start node
          * @param {HTMLElement} startOffset The start offset
@@ -2063,10 +2054,21 @@ CUI.rte.DomProcessor = function() {
          * @param {HTMLElement} endOffset (optional) The end offset
          */
         calcScreenEstate: function(context, startNode, startOffset, endNode, endOffset) {
-            var dpr = CUI.rte.DomProcessor;
+            var dpr = CUI.rte.DomProcessor, range, boundingRect;
             if (!endNode) {
                 endNode = startNode;
                 endOffset = startOffset;
+            }
+
+            if (com.ua.isIE11) {
+                range = context.doc.createRange();
+                range.setStart(startNode, startOffset);
+                range.setEnd(endNode, endOffset);
+                boundingRect = range.getBoundingClientRect();
+                return {
+                    startY: boundingRect.top,
+                    endY: boundingRect.bottom
+                }
             }
 
             // get start and end block to limit the scope
@@ -2120,9 +2122,7 @@ CUI.rte.DomProcessor = function() {
                 endBlock.parentNode.removeChild(clonedEndBlock);
             }
             return {
-                startX: startPos[0],
                 startY: startPos[1],
-                endX: endPos[0],
                 endY: endPos[1] + endHeight
             }
         },

@@ -60,6 +60,9 @@ CUI.rte.plugins.ControlPlugin = new Class({
                 "close": {
                     "title": CUI.rte.Utils.i18n("plugins.control.closeTitle"),
                     "text": CUI.rte.Utils.i18n("plugins.control.closeText")
+                },
+                "save": {
+                    "title": CUI.rte.Utils.i18n("plugins.control.saveTitle")
                 }
             }
         });

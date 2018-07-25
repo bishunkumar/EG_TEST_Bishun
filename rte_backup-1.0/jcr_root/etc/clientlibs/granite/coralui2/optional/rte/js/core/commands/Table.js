@@ -711,8 +711,10 @@ CUI.rte.commands.Table = new Class({
     transferConfigToCell: function(context, dom, config) {
         var com = CUI.rte.Common;
         var noneConfig = CUI.rte.commands.Table.CONFIG_NONE;
+        var cellTypeChanged = "false";
         if (config.cellType && (config.cellType != noneConfig)) {
             if (!com.isTag(dom, config.cellType)) {
+                cellTypeChanged = "true";
                 var changedDom = context.createElement(config.cellType);
                 com.copyAttributes(dom, changedDom);
                 com.replaceNode(dom, changedDom);
@@ -762,6 +764,34 @@ CUI.rte.commands.Table = new Class({
         com.removeAttribute(dom, "class");
         if (config.cellStyle && (config.cellStyle != noneConfig)) {
             com.addClass(dom, config.cellStyle);
+        }
+        if (config.hiddenheader && cellType == "th") {
+            if (config.hiddenHeaderEditingCSS) {
+                com.addClass(dom, config.hiddenHeaderEditingCSS);
+            } else {
+                com.addInlineStyles(dom, config.hiddenHeaderEditingStyle);
+            }
+            com.setAttribute(dom, "hiddenheader", "true");
+        } else if (cellTypeChanged === "true" || config.handleHiddenHeader === "true") {
+            if (config.hiddenHeaderEditingCSS) {
+                com.removeClass(dom, config.hiddenHeaderEditingCSS);
+            } else {
+                var stylesToRemove = [];
+                var editingStyle = config.hiddenHeaderEditingStyle;
+                editingStyle = editingStyle.trim();
+                var attributes = editingStyle.split(';');
+                for (var i = 0; i < attributes.length; i++) {
+                    var propNameValue = attributes[i].split(':');
+                    if (propNameValue.length == 2) {
+                        var propName = propNameValue[0].trim();
+                        if (propName.length) {
+                            stylesToRemove.push(propName);
+                        }
+                    }
+                }
+                com.removeInlineStyles(dom, stylesToRemove);
+            }
+            com.removeAttribute(dom, "hiddenheader");
         }
     },
 

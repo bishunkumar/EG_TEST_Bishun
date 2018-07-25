@@ -20,7 +20,7 @@
 
     function requiresFocus(dom) {
         var $dom = $(dom);
-        return $dom.is("input:text") || $dom.is(".coral-SelectList-item");
+        return $dom.is("input:text") || $dom.is(".coral-SelectList-item") || $dom.is(".coral-Select-select--native");
     }
 
     function requiresEvent(dom) {
@@ -95,11 +95,13 @@
             this.$dialog.on("click.rte-dialog", "button[data-type=\"apply\"]",
                     function(e) {
                         self.apply();
+                        e.preventDefault();
                         e.stopPropagation();
                     });
             this.$dialog.on("click.rte-dialog", "button[data-type=\"cancel\"]",
                     function(e) {
                         self.cancel();
+                        e.preventDefault();
                         e.stopPropagation();
                     });
             this.mask = new CUI.rte.ui.cui.Mask();

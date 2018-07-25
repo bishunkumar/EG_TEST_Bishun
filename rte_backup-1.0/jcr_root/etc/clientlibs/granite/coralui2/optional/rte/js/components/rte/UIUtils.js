@@ -70,7 +70,7 @@
             createOrGetUIContainer: function($editable) {
                 var $container = CUI.rte.UIUtils.getUIContainer($editable);
                 if (!$container) {
-                    $container = $("<div class='coral-RichText-ui'></div>");
+                    $container = $("<div class='coral-RichText-ui coral--dark'></div>");
                     $editable.before($container);
                 }
                 return $container;

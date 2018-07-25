@@ -118,7 +118,7 @@ CUI.rte.plugins.KeyPlugin = new Class({
         // (jump to the start of current line) easily, we can at least prevent the "History
         // back" from being executed, hence preventing potential data loss
         if (com.ua.isGecko && com.ua.isMac) {
-            if (e.isCtrl() && (e.getCharCode() === 37)) {
+            if (e.isCtrl() && (e.getCharCode() === com.KEY_STROKES.ARROW_LEFT)) {
                 e.cancelKey = true;
                 return;
             }
@@ -251,6 +251,12 @@ CUI.rte.plugins.KeyPlugin = new Class({
                 selection = ek.createQualifiedSelection(context);
                 var selNode = selection.startNode;
                 var selOffs = selection.startOffset;
+                var insertNode = selNode;
+                var insertOffset = selOffs;
+                if (com.isTag(selNode.parentNode, "a")) {
+                    insertNode = selNode.parentNode.parentNode;
+                    insertOffset = com.getChildIndex(selNode.parentNode) + 1;
+                }
                 var newBr = context.createElement("br");
                 var caretPos = sel.getCaretPos(context);
                 if (dpr.isBlockEnd(context, selNode, selOffs)
@@ -259,11 +265,11 @@ CUI.rte.plugins.KeyPlugin = new Class({
                     if (!isBlockStart) {
                         var helperBr = context.createElement("br");
                         com.setAttribute(helperBr, com.BR_TEMP_ATTRIB, "brEOB");
-                        dpr.insertElement(context, helperBr, selNode, selOffs);
+                        dpr.insertElement(context, helperBr, insertNode, insertOffset);
                     }
-                    dpr.insertElement(context, newBr, selNode, selOffs);
+                    dpr.insertElement(context, newBr, insertNode, insertOffset);
                 } else {
-                    dpr.insertElement(context, newBr, selNode, selOffs);
+                    dpr.insertElement(context, newBr, insertNode, insertOffset);
                 }
                 var afterBr = com.getNextCharacterNode(context, newBr);
                 if (afterBr.nodeType == 1) {
@@ -303,12 +309,16 @@ CUI.rte.plugins.KeyPlugin = new Class({
 
         //Takes a span and extracts font specific data from its style attribute. Note that if the
         //style attribute contains any property other than font-family and font-size
-        //then this span is not considered equivalent to font tags and null is returned.
+        //then this span is not considered equivalent to font tags and an empty object is returned.
+        //If the span does not contain any style attribute, null is returned.
         function getFontEquivalent(span) {
             if (!span) {
                 return null;
             }
             var styleString = com.getAttribute(span, "style");
+            if (!styleString) {
+                return null;
+            }
             var styles = styleString.split(";");
             var fontEquiv = {};
             var sizeMap = {
@@ -332,7 +342,7 @@ CUI.rte.plugins.KeyPlugin = new Class({
                 } else if (prop == "font-family") {
                     fontEquiv.face = val;
                 } else {
-                    return null;
+                    return {};
                 }
             }
             return fontEquiv;

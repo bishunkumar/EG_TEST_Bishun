@@ -138,7 +138,7 @@
                 $ui = $uiSource.clone(false);
             } else {
                 $ui = $("<div/>");
-                $ui.addClass("coral-RichText-ui");
+                $ui.addClass("coral-RichText-ui coral--dark");
             }
             // ... and determine the correct config object from the copied UI
             var $toolbar = CUI.rte.UIUtils.getToolbar($editable, tbType);
@@ -227,65 +227,9 @@
             return ek;
         },
 
-        /**
-         * Get content from source editor and push it into RTE.
-         * @private
-         */
-        pushValue: function(){
-            var v = this.$sourceEditor.val();
-            if (!this.sourceEditMode || this.togglingSourceEdit) {
-                this.fullScreenRTE.editorKernel.setUnprocessedHtml(v);
-            }
-        },
-
-        /**
-         * Get content from RTE and push it into source editor.
-         * @private
-         */
-        syncValue: function() {
-            if (!this.sourceEditMode || this.togglingSourceEdit) {
-                var html = this.fullScreenRTE.editorKernel.getProcessedHtml();
-                this.$sourceEditor.val(html);
-            }
-        },
-
+        // Keeping this function for backward-compatibility
         toggleSourceEdit: function(sourceEditMode){
-            this.togglingSourceEdit = true;
-            if (sourceEditMode === undefined){
-                sourceEditMode = !this.sourceEditMode;
-            }
-            sourceEditMode = sourceEditMode === true;
-            var isChanged = sourceEditMode !== this.sourceEditMode;
-            this.sourceEditMode = sourceEditMode;
-            var ek = this.fullScreenRTE.editorKernel;
-            if (!isChanged) {
-                return;
-            }
-            if (this.sourceEditMode) {
-                ek.disableFocusHandling();
-                ek.notifyBlur();
-                ek.disableToolbar([ "sourceedit" ]);
-                this.syncValue();
-                this.$editor.hide();
-                this.$sourceEditor.show();
-                this.$sourceEditor.focus();
-                ek.firePluginEvent("sourceedit", {
-                    "enabled": true
-                }, false);
-            } else {
-                ek.enableFocusHandling();
-                if (this.initialized && !this.disabled){
-                    ek.enableToolbar();
-                }
-                this.$editor.show();
-                this.$sourceEditor.hide();
-                this.pushValue();
-                ek.focus();
-                ek.firePluginEvent("sourceedit", {
-                    "enabled": false
-                }, false);
-            }
-            this.togglingSourceEdit = false;
+            this.fullScreenRTE.toggleSourceEdit(sourceEditMode);
         },
 
         finish: function() {

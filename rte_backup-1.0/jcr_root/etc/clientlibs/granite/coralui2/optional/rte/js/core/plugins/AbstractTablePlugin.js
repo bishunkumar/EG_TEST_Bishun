@@ -186,6 +186,44 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
      */
 
     /**
+     * @cfg {String} hiddenHeaderClassName
+     * <p>Specifies the name of the CSS class that will be applied on the hidden-header cell, when
+     * the richtext is not being edited. Apply CSS on this class to hide the hidden-header cell.</p>
+     * <p>User can either provide this class or a style String {@link #hiddenHeaderStyle}.</p>
+     * <p>Please note that 'hiddenHeaderClassName' is given more priority than 'hiddenHeaderStyle'.</p>
+     * @since 6.2
+     */
+
+    /**
+     * @cfg {String} hiddenHeaderStyle
+     * <p>Specifies the Style String that will be applied on the hidden-header cell, when
+     * the richtext is <b>not</b> being edited.</p>
+     * <p>User can either provide this style String or {@link #hiddenHeaderClassName}.</p>
+     * <p>Please note that 'hiddenHeaderClassName' is given more priority than 'hiddenHeaderStyle'.</p>
+     * <p>Default value : "display: block; height: 1px; width: 1px; overflow: hidden; position: absolute; top: -10px;"</p>
+     * @since 6.2
+     */
+
+    /**
+     * @cfg {String} hiddenHeaderEditingCSS
+     * <p>Specifies the name of the CSS class that will be applied on the hidden-header cell, when
+     * the richtext <b>is</b> being edited. Apply CSS on this class to differentiate the hidden-header cell from other cells.</p>
+     * <p>User can either provide this class or a style String {@link #hiddenHeaderEditingStyle}.</p>
+     * <p>Please note that 'hiddenHeaderEditingCSS' is given more priority than 'hiddenHeaderEditingStyle'.</p>
+     * @since 6.2
+     */
+
+    /**
+     * @cfg {String} hiddenHeaderEditingStyle
+     * <p>Specifies the Style String that will be applied on the hidden-header cell, when
+     * the richtext <b>is</b> being edited.</p>
+     * <p>User can either provide this style String or the class {@link #hiddenHeaderEditingCSS}.</p>
+     * <p>Please note that 'hiddenHeaderEditingCSS' is given more priority than 'hiddenHeaderEditingStyle'.</p>
+     * <p>Default value : "background-color: rgb(215,215,215);"</p>
+     * @since 6.2
+     */
+
+    /**
      * @private
      */
     tableUI: null,
@@ -258,28 +296,55 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
             return;
         }
         var com = CUI.rte.Common;
+        var dpr = CUI.rte.DomProcessor;
         var sel = CUI.rte.Selection;
         var context = e.editContext;
         var selection;
 
-        // IE allows selections outside a table in table edit mode; ignore keystrokes there
-        // if necessary
+        // Webkit allows selections outside a table in table edit mode; avoid selection from going outside
+        // or ignore keystrokes there.
         if (this.isTableMode()) {
-            if (com.ua.isIE) {
+            if (com.ua.isWebKit || com.ua.isIE9) {
                 selection = this.editorKernel.createQualifiedSelection(context);
-                if (!selection || com.isRootNode(context, selection.startNode)) {
-                    var cells = com.getChildNodesByType(context.root, [ "th", "td" ], true,
-                            "table");
-                    if (cells.length > 0) {
-                        var cellToSelect;
-                        if (selection && (selection.startOffset == 0)) {
-                            cellToSelect = cells[0];
-                        } else {
-                            cellToSelect = cells[cells.length - 1];
+                if (!selection || !com.containsTagInPath(context, selection.startNode, "tr")) {
+                    if (!(e.isCtrl && e.getCharCode() == 90)) {
+                        var cells = com.getChildNodesByType(context.root, [ "th", "td" ], true);
+                        if (cells.length > 0) {
+                            var cellToSelect;
+                            if (com.isAncestor(context, context.root.firstChild, selection.startNode)) {
+                                cellToSelect = cells[0];
+                            } else {
+                                cellToSelect = cells[cells.length - 1];
+                            }
+                            sel.selectNode(context, cellToSelect, true);
                         }
-                        sel.selectNode(context, cellToSelect, true);
+                        dpr.removeNonTableBlocks(context);
+                        e.cancelKey = true;
                     }
-                    e.cancelKey = true;
+                } else {
+                    var selectionCell = com.getTagInPath(context, selection.startNode, ["td", "th"]);
+                    var tableInfo = this.getTableInfo(this.currentSelectionDef, context);
+                    var tableMatrix = tableInfo["tableMatrix"];
+                    var cellInfo = tableMatrix.getCellInfo(selectionCell);
+                    if (e.isCtrl() && !e.isShift() && (e.getCharCode() == com.KEY_STROKES.ARROW_LEFT
+                            || e.getCharCode() == com.KEY_STROKES.ARROW_RIGHT)) {
+                        e.cancelKey = true;
+                    } else if (cellInfo.isFirstRow && cellInfo.isFirstCol) {
+                        if (e.getCharCode() == com.KEY_STROKES.ARROW_UP && !e.isShift()) {
+                            e.cancelKey = true;
+                        } else if (!sel.isSelection(selection) && !selection.startOffset
+                                && (e.getCharCode() == com.KEY_STROKES.ARROW_LEFT || e.getCharCode() == com.KEY_STROKES.ARROW_UP)) {
+                            e.cancelKey = true;
+                        }
+                    } else if (cellInfo.isLastRow && cellInfo.isLastCol) {
+                        if (e.getCharCode() == com.KEY_STROKES.ARROW_DOWN && !e.isShift()) {
+                            e.cancelKey = true;
+                        } else if (!sel.isSelection(selection) &&
+                                (dpr.isBlockEnd(context, selection.startNode, selection.startOffset) || (selection.startOffset == null && selection.startNode.tagName.toLowerCase() == "td"))
+                                && (e.getCharCode() == com.KEY_STROKES.ARROW_RIGHT || e.getCharCode() == com.KEY_STROKES.ARROW_DOWN)) {
+                            e.cancelKey = true;
+                        }
+                    }
                 }
             }
         }
@@ -389,7 +454,7 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
             } else if (type == "mousedown") {
                 removeSelection = !addToSelection && (e.getButton() != 2);
             } else if (type == "commandexecuted") {
-                switch (e.cmd) {
+                switch (e.cmd.toLowerCase()) {
                     case "removetable":
                         this.tableSelection = null;
                         break;
@@ -400,13 +465,13 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
                     case "removecolumn":
                     case "undo":
                     case "redo":
-                        removeSelection = true;
-                        break;
-                    case "modifycell":
                     case "insertrow":
                     case "insertcolumn":
                     case "splitcell":
                     case "mergecells":
+                        removeSelection = true;
+                        break;
+                    case "modifycell":
                         this.refreshTableSelection();
                         break;
                     default:
@@ -491,6 +556,7 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
             if (cell.parentNode == null) {
                 com.removeClass(cell, CUI.rte.Theme.TABLESELECTION_CLASS);
             } else {
+                com.addClass(cell,CUI.rte.Theme.TABLESELECTION_CLASS);
                 newSelection.push(cell);
             }
         }
@@ -545,7 +611,7 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
                     "cmd": "createtable",
                     "table": null,
                     "parameters": {
-                        "command": this.pluginId + "#table"
+                        "command": options.command ? options.command : this.pluginId + "#table"
                     }
                 };
             }
@@ -632,6 +698,13 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
     execEditCellProps: function(cellConfig, context) {
         this.editorKernel.selectQualifiedRangeBookmark(context, this.savedRange);
         if (cellConfig) {
+            var hiddenHeaderConfig = this.getHiddenHeaderConfig();
+            if (hiddenHeaderConfig.hiddenHeaderEditingCSS) {
+                cellConfig["hiddenHeaderEditingCSS"] = hiddenHeaderConfig.hiddenHeaderEditingCSS;
+            } else {
+                cellConfig["hiddenHeaderEditingStyle"] = hiddenHeaderConfig.hiddenHeaderEditingStyle;
+            }
+            cellConfig["handleHiddenHeader"] = "false";
             this.editorKernel.relayCmd("modifyCell", cellConfig);
         }
     },
@@ -722,6 +795,10 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
             "cellPropConfig": {
                 "basicDefs": true
             },
+            "hiddenHeaderConfig": {
+                "hiddenHeaderStyle": "display: block; height: 1px; width: 1px; overflow: hidden; position: absolute; top: -10px;",
+                "hiddenHeaderEditingStyle": "background-color: rgb(215,215,215);"
+            },
             "tooltips": {
                 "table": {
                     "title": CUI.rte.Utils.i18n("plugins.table.tableTitle"),
@@ -763,74 +840,82 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
     /**
      * @private
      */
+    initializeTableModeUI: function(tbGenerator) {
+        var plg = CUI.rte.plugins;
+        // use a more detailed toolbar in table mode
+        if (this.isFeatureEnabled("table") && !this.isTableToolbarMode()) {
+            this.tableUI = tbGenerator.createElement("table", this, false,
+              this.getTooltip("table"), "x-edit-table-properties");
+            tbGenerator.addElement("table", plg.Plugin.SORT_TABLE_TABLEMODE,
+              this.tableUI, 10);
+        }
+        if (this.isFeatureEnabled("cellprops")) {
+            this.cellPropsUI = tbGenerator.createElement("cellprops", this, false,
+              this.getTooltip("cellprops"));
+            tbGenerator.addElement("table", plg.Plugin.SORT_TABLE_TABLEMODE,
+              this.cellPropsUI, 20);
+        }
+        if (this.isFeatureEnabled("insertrow")) {
+            this.insertRowBeforeUI = tbGenerator.createElement("insertrow-before", this,
+              false, this.getTooltip("insertrow-before"), null, {
+                  "cmd": "insertrow",
+                  "cmdValue": "before"
+              });
+            tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
+              this.insertRowBeforeUI, 10);
+            this.insertRowAfterUI = tbGenerator.createElement("insertrow-after", this,
+              false, this.getTooltip("insertrow-after"), null, {
+                  "cmd": "insertrow",
+                  "cmdValue": "after"
+              });
+            tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
+              this.insertRowAfterUI, 20);
+        }
+        if (this.isFeatureEnabled("removerow")) {
+            this.removeRowUI = tbGenerator.createElement("removerow", this, false,
+              this.getTooltip("removerow"));
+            tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
+              this.removeRowUI, 30);
+        }
+        if (this.isFeatureEnabled("insertcolumn")) {
+            this.insertColBeforeUI = tbGenerator.createElement("insertcolumn-before",
+              this, false, this.getTooltip("insertcolumn-before"), null, {
+                  "cmd": "insertcolumn",
+                  "cmdValue": "before"
+              });
+            tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
+              this.insertColBeforeUI, 10);
+            this.insertColAfterUI = tbGenerator.createElement("insertcolumn-after",
+              this, false, this.getTooltip("insertcolumn-after"), null, {
+                  "cmd": "insertcolumn",
+                  "cmdValue": "after"
+              });
+            tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
+              this.insertColAfterUI, 20);
+        }
+        if (this.isFeatureEnabled("removecolumn")) {
+            this.removeColUI = tbGenerator.createElement("removecolumn", this, false,
+              this.getTooltip("removecolumn"));
+            tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
+              this.removeColUI, 30);
+        }
+    },
+
+    /**
+     * @private
+     */
     initializeUI: function(tbGenerator) {
         var plg = CUI.rte.plugins;
         var ui = CUI.rte.ui;
         // todo use correct tooltips for table mode buttons
-        if (!this.isTableMode() && !this.isTableToolbarMode()) {
+        if (!this.isTableMode()) {
             if (this.isFeatureEnabled("table")) {
                 this.tableUI = tbGenerator.createElement("table", this, false,
                         this.getTooltip("table"));
                 tbGenerator.addElement("table", plg.Plugin.SORT_TABLE, this.tableUI, 10);
             }
         } else {
-            // use a more detailed toolbar in table mode
-            if (this.isFeatureEnabled("table")) {
-                this.tableUI = tbGenerator.createElement("table", this, false,
-                        this.getTooltip("table"), "x-edit-table-properties");
-                tbGenerator.addElement("table", plg.Plugin.SORT_TABLE_TABLEMODE,
-                        this.tableUI, 10);
-            }
-            if (this.isFeatureEnabled("cellprops")) {
-                this.cellPropsUI = tbGenerator.createElement("cellprops", this, false,
-                        this.getTooltip("cellprops"));
-                tbGenerator.addElement("table", plg.Plugin.SORT_TABLE_TABLEMODE,
-                        this.cellPropsUI, 20);
-            }
-            if (this.isFeatureEnabled("insertrow")) {
-                this.insertRowBeforeUI = tbGenerator.createElement("insertrow-before", this,
-                        false, this.getTooltip("insertrow-before"), null, {
-                            "cmd": "insertrow",
-                            "cmdValue": "before"
-                        });
-                tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
-                        this.insertRowBeforeUI, 10);
-                this.insertRowAfterUI = tbGenerator.createElement("insertrow-after", this,
-                        false, this.getTooltip("insertrow-after"), null, {
-                            "cmd": "insertrow",
-                            "cmdValue": "after"
-                        });
-                tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
-                        this.insertRowAfterUI, 20);
-            }
-            if (this.isFeatureEnabled("removerow")) {
-                this.removeRowUI = tbGenerator.createElement("removerow", this, false,
-                    this.getTooltip("removerow"));
-                tbGenerator.addElement("table.row", plg.Plugin.SORT_TABLE_TABLEMODE + 1,
-                        this.removeRowUI, 30);
-            }
-            if (this.isFeatureEnabled("insertcolumn")) {
-                this.insertColBeforeUI = tbGenerator.createElement("insertcolumn-before",
-                        this, false, this.getTooltip("insertcolumn-before"), null, {
-                            "cmd": "insertcolumn",
-                            "cmdValue": "before"
-                        });
-                tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
-                        this.insertColBeforeUI, 10);
-                this.insertColAfterUI = tbGenerator.createElement("insertcolumn-after",
-                        this, false, this.getTooltip("insertcolumn-after"), null, {
-                            "cmd": "insertcolumn",
-                            "cmdValue": "after"
-                        });
-                tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
-                        this.insertColAfterUI, 20);
-            }
-            if (this.isFeatureEnabled("removecolumn")) {
-                this.removeColUI = tbGenerator.createElement("removecolumn", this, false,
-                        this.getTooltip("removecolumn"));
-                tbGenerator.addElement("table.col", plg.Plugin.SORT_TABLE_TABLEMODE + 2,
-                        this.removeColUI, 30);
-            }
+            this.initializeTableModeUI(tbGenerator);
         }
     },
 
@@ -882,12 +967,24 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
                 var tableMatrix = new CUI.rte.TableMatrix();
                 tableMatrix.createTableMatrix(tableDom);
                 var size = tableMatrix.getTableSize();
-                this.removeRowUI.setDisabled((size.rows == 1) || !isSingleCell);
-                this.removeColUI.setDisabled((size.cols == 1) || !isSingleCell);
-                this.insertColBeforeUI.setDisabled(!isSingleCell);
-                this.insertColAfterUI.setDisabled(!isSingleCell);
-                this.insertRowBeforeUI.setDisabled(!isSingleCell);
-                this.insertRowAfterUI.setDisabled(!isSingleCell);
+                if (this.removeRowUI) {
+                    this.removeRowUI.setDisabled((size.rows == 1) || !isSingleCell);
+                }
+                if (this.removeColUI) {
+                    this.removeColUI.setDisabled((size.cols == 1) || !isSingleCell);
+                }
+                if (this.insertColBeforeUI) {
+                    this.insertColBeforeUI.setDisabled(!isSingleCell);
+                }
+                if (this.insertColAfterUI) {
+                    this.insertColAfterUI.setDisabled(!isSingleCell);
+                }
+                if (this.insertRowBeforeUI) {
+                    this.insertRowBeforeUI.setDisabled(!isSingleCell);
+                }
+                if (this.insertRowAfterUI) {
+                    this.insertRowAfterUI.setDisabled(!isSingleCell);
+                }
             }
         }
     },
@@ -905,8 +1002,6 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
         var tableDom = com.getTagInPath(context, nodeList.commonAncestor, "table");
         var isTable = isSingleCell || (tableDom != null);
         var tableMatrix;
-        var canRemoveCol = true;
-        var canRemoveRow = true;
         if (isTable) {
             tableMatrix = new CUI.rte.TableMatrix();
             tableMatrix.createTableMatrix(tableDom);
@@ -1050,7 +1145,7 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
                     "iconCls": "rte-insertcolumn-after"
                 });
             }
-            if (this.isFeatureEnabled("removecolumn") && tableInfo["canRemoveCol"]) {
+            if (this.isFeatureEnabled("removecolumn") && canRemoveCol) {
                 colSubItems.push({
                     "text": CUI.rte.Utils.i18n("plugins.table.remove"),
                     "plugin": this,
@@ -1084,7 +1179,7 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
                     "iconCls": "rte-insertrow-after"
                 });
             }
-            if (this.isFeatureEnabled("removerow") && tableInfo["canRemoveRow"]) {
+            if (this.isFeatureEnabled("removerow") && canRemoveRow) {
                 rowSubItems.push({
                     "text": CUI.rte.Utils.i18n("plugins.table.remove"),
                     "plugin": this,
@@ -1307,6 +1402,10 @@ CUI.rte.plugins.AbstractTablePlugin = new Class({
 
     isTableToolbarMode: function() {
         return false;
+    },
+
+    getHiddenHeaderConfig: function () {
+        return this.config.hiddenHeaderConfig;
     }
 
 });

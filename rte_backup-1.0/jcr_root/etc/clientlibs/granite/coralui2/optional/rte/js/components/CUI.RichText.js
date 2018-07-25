@@ -12,7 +12,11 @@
 
         editorKernel: null,
 
+        useFixedInlineToolbar: false,
+
         uiSettings: null,
+
+        $sourceEditor: undefined,
 
         savedSpellcheckAttrib: null,
 
@@ -25,6 +29,8 @@
         _initialContent: null,
 
         id: null,
+
+        $valueOnFocus: null,
 
         /**
          * Flag to ignore the next "out of area" click event
@@ -80,6 +86,19 @@
 
         _saveRequested: function() {
             this.finish(false);
+        },
+
+        _onFocusGain: function() {
+            if (this.$valueOnFocus === null || this.$valueOnFocus === undefined) {
+                this.$valueOnFocus = this.$element.html();
+            }
+        },
+
+        _onFocusLoss: function() {
+            if (this.$element.html() !== this.$valueOnFocus) {
+                this.$valueOnFocus = this.$element.html();
+                this.$element.trigger("change");
+            }
         },
 
         _handleToolbarOnSelectionChange: function() {
@@ -166,7 +185,7 @@
                             if (_isClick && !_isToolbarHidden
                                     && !self.editorKernel.isLocked()) {
                                 var tb = self.editorKernel.toolbar;
-                                if (!tb.isSticky()) {
+                                if (!tb.isSticky() && !self.useFixedInlineToolbar) {
                                     self.editorKernel.toolbar.hide();
                                     _isToolbarHidden = true;
                                 }
@@ -220,9 +239,12 @@
                 "isFullScreen": isFullScreen,
                 "tbType": (isFullScreen ? "fullscreen" : "inline"),
                 "componentType": this.options.componentType,
-                "additionalClasses": this.options.additionalClasses
+                "additionalClasses": this.options.additionalClasses,
+                "useFixedInlineToolbar": this.useFixedInlineToolbar
             });
             this.editorKernel.addUIListener("updatestate", this.updateState, this);
+            this.editorKernel.addUIListener("focusgained", this._onFocusGain, this);
+            this.editorKernel.addUIListener("focuslost", this._onFocusLoss, this);
             var doc = this.textContainer.ownerDocument;
             var win = com.getWindowForDocument(doc);
             this.editorKernel.initializeEditContext(win, doc, this.textContainer);
@@ -251,6 +273,14 @@
                 }, this);
                 this.editorKernel.addUIListener("disablesourceedit", function () {
                     self.fullScreenAdapter.toggleSourceEdit(false);
+                }, this);
+            } else if (this.useFixedInlineToolbar) {
+                var self = this;
+                this.editorKernel.addUIListener("enablesourceedit", function () {
+                    self.toggleSourceEdit(true);
+                }, this);
+                this.editorKernel.addUIListener("disablesourceedit", function () {
+                    self.toggleSourceEdit(false);
                 }, this);
             }
             var tb = this.editorKernel.toolbar;
@@ -351,7 +381,7 @@
                     }
                     self.isTemporaryFocusChange = true;
                     CUI.rte.UIUtils.killEvent(e);
-                } else if (self.isActive) {
+                } else if (self.isActive && !self.useFixedInlineToolbar) {
                     self.finish(false);
                     self.$textContainer.blur();
                 }
@@ -397,8 +427,11 @@
                 this.editorKernel.removeUIListener("requestClose");
                 this.editorKernel.removeUIListener("requestSave");
                 this.editorKernel.removeUIListener("updatestate");
+                this.editorKernel.removeUIListener("focusgained");
+                this.editorKernel.removeUIListener("focuslost");
                 this.editorKernel.suspendEventHandling();
                 this.editorKernel.destroyToolbar();
+                this.editorKernel.destroyBackgroundToolbars();
                 this.editorKernel.hasFocus = false;
             }
         },
@@ -453,6 +486,17 @@
                 this.editorKernel.setUnprocessedHtml(html);
             }
         },
+        /**
+         * Support for drag and drop of Image
+         * @param event
+         */
+        insertImage: function(path) {
+            var cmdValue = {
+                path : path
+            }
+            this.editorKernel.relayCmd("insertimg", cmdValue);
+        },
+
 
         getUndoConfig: function() {
             return this.editorKernel.execCmd("getundoconfig");
@@ -468,12 +512,13 @@
             this.editorKernel.focus();
         },
 
-        start: function(config) {
+        start: function(config, useFixedInlineToolbar) {
             if (this.isActive) {
                 throw new Error("Cannot start an already active editor.");
             }
             this.originalConfig = (config ? CUI.rte.Utils.copyObject(config) : { });
             var isFullScreen = !!this.options.isFullScreen;
+            this.useFixedInlineToolbar = useFixedInlineToolbar;
             this.uiSettings = (config ? config.uiSettings : undefined);
             if (this.editorKernel === null) {
                 var ac = !!this.options.autoConfig;
@@ -516,6 +561,18 @@
                 this.textContainer.style.outlineStyle = "none";
             }
             this.initializeEditorKernel(initialContent);
+            if (isFullScreen) {
+                this.$sourceEditor = this.fullScreenAdapter.$sourceEditor;
+            } else if (this.useFixedInlineToolbar) {
+                this.$sourceEditor = $("<textarea/>");
+                this.$sourceEditor.addClass("coral-RichText-sourceEditor");
+                this.$textContainer.after(this.$sourceEditor);
+                this.$sourceEditor.hide();
+                this.$sourceEditor.fipo("tap.rte-" + this.id, "click.rte-" + this.id,
+                  function (e) {
+                      e.stopPropagation();
+                  });
+            }
             var context = this.editorKernel.getEditContext();
             var body = context.doc.body;
             this.savedSpellcheckAttrib = body.spellcheck;
@@ -527,6 +584,9 @@
         },
 
         finish: function(isCancelled) {
+            if (this.sourceEditMode) {
+                this.editorKernel.fireUIEvent("disablesourceedit");
+            }
             if (this._dispatchEvent(isCancelled ? "beforeCancel" : "beforeFinish")) {
                 return undefined;
             }
@@ -577,6 +637,67 @@
                 this.editorKernel.getToolbar().show();
                 this.isActive = true;
             }
+        },
+
+        /**
+         * Get content from source editor and push it into RTE.
+         * @private
+         */
+        pushValue: function(){
+            var v = this.$sourceEditor.val();
+            if (!this.sourceEditMode || this.togglingSourceEdit) {
+                this.editorKernel.setUnprocessedHtml(v);
+            }
+        },
+
+        /**
+         * Get content from RTE and push it into source editor.
+         * @private
+         */
+        syncValue: function() {
+            if (!this.sourceEditMode || this.togglingSourceEdit) {
+                var html = this.editorKernel.getProcessedHtml();
+                this.$sourceEditor.val(html);
+            }
+        },
+
+        toggleSourceEdit: function(sourceEditMode){
+            this.togglingSourceEdit = true;
+            if (sourceEditMode === undefined){
+                sourceEditMode = !this.sourceEditMode;
+            }
+            sourceEditMode = sourceEditMode === true;
+            var isChanged = sourceEditMode !== this.sourceEditMode;
+            this.sourceEditMode = sourceEditMode;
+            var ek = this.editorKernel;
+            if (!isChanged) {
+                return;
+            }
+            if (this.sourceEditMode) {
+                ek.disableFocusHandling();
+                ek.notifyBlur();
+                ek.disableToolbar([ "sourceedit" ]);
+                this.syncValue();
+                this.$element.hide();
+                this.$sourceEditor.show();
+                this.$sourceEditor.focus();
+                ek.firePluginEvent("sourceedit", {
+                    "enabled": true
+                }, false);
+            } else {
+                ek.enableFocusHandling();
+                if (this.initialized && !this.disabled){
+                    ek.enableToolbar();
+                }
+                this.$element.show();
+                this.$sourceEditor.hide();
+                this.pushValue();
+                ek.focus();
+                ek.firePluginEvent("sourceedit", {
+                    "enabled": false
+                }, false);
+            }
+            this.togglingSourceEdit = false;
         }
 
     });

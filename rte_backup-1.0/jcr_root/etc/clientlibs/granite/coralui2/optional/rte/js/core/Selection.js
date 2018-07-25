@@ -269,7 +269,8 @@ CUI.rte.Selection = function() {
                 "startNode": selection.startNode,
                 "startOffset": selection.startOffset,
                 "endNode": selection.endNode,
-                "endOffset": selection.endOffset
+                "endOffset": selection.endOffset,
+                "cellSelection": selection.cellSelection
             };
             CUI.rte.Selection.normalizeProcessingSelection(context, selection);
             var startPos = com.getCharacterOffsetForNode(context, selection.startNode);
@@ -289,6 +290,19 @@ CUI.rte.Selection = function() {
                     }
                 } else if (selection.endOffset) {
                     endPos += selection.endOffset;
+                }
+            }
+            if(com.ua.isGecko){
+                var cells = null;
+                if(selection.cellSelection){
+                    cells=selection.cellSelection.cells;
+                }
+                return {
+                    "startPos": startPos,
+                    "charCnt": (endPos - startPos),
+                    "object": null,
+                    "insertObject": null,
+                    "cells": cells
                 }
             }
             // todo probably at least insertObject should be calculated correctly

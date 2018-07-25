@@ -61,10 +61,7 @@ CUI.rte.commands.Style = new Class({
     },
 
     /**
-     * Removes the style of the text fragment that is under the current caret position.
-     * <p>
-     * This method does currently not work with selections. Therefore a selection is
-     * collapsed to a single char if the method is called for a selection.
+     * Removes the style of the text fragment that is either selected or is under the current caret position.
      * @private
      */
     removeStyle: function(execDef) {
@@ -130,7 +127,11 @@ CUI.rte.commands.Style = new Class({
         var removeCnt = spansToRemove.length;
         for (var r = 0; r < removeCnt; r++) {
             var spanToRemove = spansToRemove[r];
-            dpr.removeWithoutChildren(spanToRemove);
+            if (selection.endNode) {
+                nodeList.removeNodesByTag(execDef.editContext, spanToRemove.tagName, {"class":spanToRemove.getAttribute("class")}, true);
+            } else {
+                dpr.removeWithoutChildren(spanToRemove);
+            }
         }
     },
 

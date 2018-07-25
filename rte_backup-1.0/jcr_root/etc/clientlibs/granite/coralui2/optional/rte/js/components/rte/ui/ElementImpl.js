@@ -41,7 +41,8 @@
             toolbar.push({
                 "ref": commandRef,
                 "plugin": this.plugin.pluginId,
-                "command": this.id
+                "command": this.id,
+                "tooltip": this.tooltip ? this.tooltip.title : ""
             });
         },
 
@@ -58,7 +59,7 @@
                     var editorKernel = self.plugin.editorKernel;
                     if (!self.$ui.hasClass(CUI.rte.Theme.TOOLBARITEM_DISABLED_CLASS)) {
                         var editContext = editorKernel.getEditContext();
-                        if (self.toggle) {
+                        if (self.toggle && !self._isHighlighted) {
                             self.setSelected(!self.isSelected());
                         }
                         editContext.setState("CUI.SelectionLock", 1);

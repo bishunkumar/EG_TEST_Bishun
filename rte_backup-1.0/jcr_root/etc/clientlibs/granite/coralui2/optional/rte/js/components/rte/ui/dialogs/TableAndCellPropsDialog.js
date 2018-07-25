@@ -31,11 +31,11 @@
 
         tabPanel: null,
 
-        cellHorizontalAlignmentSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-column--cellHorizontalAlignment",
+        cellHorizontalAlignmentSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-select--cellHorizontalAlignment",
 
-        cellVerticalAlignmentSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-column--cellVerticalAlignment",
+        cellVerticalAlignmentSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-select--cellVerticalAlignment",
 
-        cellTypeSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-column--cellType",
+        cellTypeSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-select--cellType",
 
         $cellHeadersContainer: null,
 
@@ -43,7 +43,7 @@
 
         $cellScopeContainer: null,
 
-        cellScopeSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-column--scopeAttribute",
+        cellScopeSelector: ".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-select--scopeAttribute",
 
         cellHorizontalAlignmentCUI: null,
 
@@ -70,11 +70,6 @@
         // Override CUI.rte.ui.cui.TablePropsDialog#createExecutionConfig
         createExecutionConfig: function() {
             var execConfig = CUI.rte.Utils.scope(this.superClass.createExecutionConfig, this)();
-            this.$container.find(":checked").each(function(){
-                if (this.value && this.value.indexOf("applyTo-") == 0) {
-                    execConfig["cell-_applyTo"] = this.value.split("applyTo-")[1];
-                }
-            });
             if (this.cellType == "th") {
                 var value = this.cellScope;
                 if (value) {
@@ -84,6 +79,10 @@
                 value = this.$cellId.val();
                 if (value) {
                     execConfig[id] = value;
+                }
+                if (this.$hiddenHeaderSwitch.is(":checked")) {
+                    var id = this.$hiddenHeaderSwitch.data().type;
+                    execConfig[id] = this.$hiddenHeaderSwitch.val();
                 }
             } else {
                 var id = this.$cellHeaders.data().type;
@@ -106,6 +105,7 @@
             this.$cellHeight = this.$container.find(".coral-RichText-dialog--tableandcellprops input[data-type=\"cell-height\"]");
             this.$cellHeaders = this.$container.find(".coral-RichText-dialog--tableandcellprops input[data-type=\"cell-headers\"]");
             this.$cellId = this.$container.find(".coral-RichText-dialog--tableandcellprops input[data-type=\"cell-id\"]");
+            this.$hiddenHeaderSwitch = this.$container.find(".coral-RichText-dialog--tableandcellprops input[data-type=\"cell-hiddenheader\"]");
             this.$cellHeadersContainer = $(".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-columnContainer--headerAttribute");
             this.$cellIdContainer = $(".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-columnContainer--idAttribute");
             this.$cellScopeContainer = $(".coral-RichText-dialog.coral-RichText-dialog--tableandcellprops .coral-RichText-dialog-columnContainer--scopeAttribute");
@@ -221,6 +221,7 @@
             this.$caption.val(caption);
             this.$cellWidth.val(com.getAttribute(cell, "width"));
             this.$cellHeight.val(com.getAttribute(cell, "height"));
+            this.$hiddenHeaderSwitch.prop("checked", com.getAttribute(cell, "hiddenheader"));
             var align = null;
             if (cellStyle) {
                 var styles = cellStyle.split(";");
@@ -249,7 +250,6 @@
                 this.$cellIdContainer.hide();
                 this.$cellHeadersContainer.show();
             }
-            this.$container.find("input[name=\"cell-applyTo\"][value=\"applyTo-cell\"]").prop("checked", "true");
         }
     });
 

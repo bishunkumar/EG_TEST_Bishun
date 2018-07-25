@@ -29,7 +29,8 @@ CUI.rte.Common = function() {
         check = function(r){
             return r.test(ua);
         },
-        isWebkit = check(/webkit/),
+        isEdge = check(/\bedge\b/) && check(/webkit/),
+        isWebkit = !isEdge && check(/webkit/),
         isIE = !isWebkit && (check(/msie/) || check(/trident/)),
         isGecko = !isIE && !isWebkit && check(/gecko/), // because the Webkit and IE11 user agent string sometimes contains "like Gecko"
         // TODO ambigious browser detection, see CUI-447
@@ -368,6 +369,10 @@ CUI.rte.Common = function() {
              */
             isMac: isMac,
             /**
+             * True if the detected browser is Microsoft Edge.
+             */
+            isEdge: isEdge,
+            /**
              * True if the detected browser is Chrome
              */
             isChrome: isChrome,
@@ -621,8 +626,8 @@ CUI.rte.Common = function() {
         /**
          * <p>Adds styles directly to the style attribute on element.</p>
          * @param {HTMLElement} dom The DOM element
-         * @param {Object} styleData JSON object containing style property name and value.
-         * Eg. {"height": "50px", "float": "right"}
+         * @param {Object|String} styleData JSON object or a String containing style property name and value.
+         * Eg. {"height": "50px", "float": "right"} | "height: 50px;float: right;"
          */
         addInlineStyles: function(dom, styleData) {
             var com = CUI.rte.Common;
@@ -631,11 +636,28 @@ CUI.rte.Common = function() {
             if (existingStyle.length > 0 && existingStyle.lastIndexOf(";") != existingStyle.length - 1) {
                 existingStyle += ";";
             }
-            for (var prop in styleData) {
-                if (styleData.hasOwnProperty(prop)) {
-                    var propRegexp = new RegExp(prop + "[^;]+;");
-                    existingStyle = existingStyle.replace(propRegexp, "").replace(/  +/, " ").trim();
-                    existingStyle += prop + ": " + styleData[prop] + ";";
+            if (typeof styleData === 'string') {
+                styleData = styleData.trim();
+                var attributes = styleData.split(';');
+                for (var i = 0; i < attributes.length; i++) {
+                    var attribute = attributes[i];
+                    attribute = attribute.trim();
+                    var propNameValue = attribute.split(':');
+                    if (propNameValue.length === 2) {
+                        var propName = propNameValue[0].trim();
+                        var propValue = propNameValue[1].trim();
+                        var propRegexp = new RegExp(propName + "[^;]+;");
+                        existingStyle = existingStyle.replace(propRegexp, "").replace(/  +/, " ").trim();
+                        existingStyle += propName + ": " + propValue + ";";
+                    }
+                }
+            } else {
+                for (var prop in styleData) {
+                    if (styleData.hasOwnProperty(prop)) {
+                        var propRegexp = new RegExp(prop + "[^;]+;");
+                        existingStyle = existingStyle.replace(propRegexp, "").replace(/  +/, " ").trim();
+                        existingStyle += prop + ": " + styleData[prop] + ";";
+                    }
                 }
             }
             if (existingStyle.length > 0) {
@@ -2213,6 +2235,23 @@ CUI.rte.Common = function() {
         },
 
         /**
+         * Removes all direct child nodes of given dom which have given tag name and no child nodes.
+         * @param {Node} dom DOM node whose child nodes are to be removed
+         * @param {String|String []} tagName - only the nodes with this(these) tagName(s) would be removed
+         */
+        removeEmptyChildNodes: function(dom, tagName) {
+            var tags = CUI.rte.Common.getChildNodesByType(dom, tagName);
+            var index = 0, tag;
+            while (index < tags.length) {
+                tag = tags[index];
+                if (tag.childNodes.length == 0) {
+                    dom.removeChild(tag);
+                }
+                index++;
+            }
+        },
+
+        /**
          * Get the value for the given style attribute name that is actually valid for
          * the specified DOM element. If necessary, the value is taken from a parent element
          * accordingly.
@@ -3026,6 +3065,22 @@ CUI.rte.Common = function() {
             "rowspan": "rowSpan",
             "colspan": "colSpan"
         },
+
+        KEY_STROKES: {
+            "ARROW_LEFT": 37,
+            "ARROW_UP": 38,
+            "ARROW_RIGHT": 39,
+            "ARROW_DOWN": 40
+        },
+
+        /**
+         * List of void elements which do not contain any content and are self-closing.
+         * @type String[]
+         */
+        VOID_TAGS: [
+            'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link',
+            'menuitem', 'meta', 'param', 'source', 'track', 'wbr'
+        ],
 
         /**
          * Attribute filter for temporary Gecko-stuff

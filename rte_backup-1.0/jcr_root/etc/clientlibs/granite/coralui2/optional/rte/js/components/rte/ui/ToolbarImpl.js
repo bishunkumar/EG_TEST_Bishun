@@ -65,11 +65,14 @@
             "left": 0
         },
 
-        construct: function(elementMap, $editable, tbType, isSticky) {
+        useFixedInlineToolbar: false,
+
+        construct: function(elementMap, $editable, tbType, isSticky, useFixedInlineToolbar) {
             this.elementMap = elementMap;
             this.$editable = $editable;
             this._isSticky = !!isSticky;
             this.tbType = (tbType || "inline");
+            this.useFixedInlineToolbar = useFixedInlineToolbar;
             this.$container = CUI.rte.UIUtils.getUIContainer(this.$editable);
             this.$toolbar = CUI.rte.UIUtils.getToolbar(this.$editable, tbType);
             if (isSticky) {
@@ -79,7 +82,7 @@
                 this.$toolbar.addClass("is-floating");
                 this.$toolbar.removeClass("is-sticky");
             }
-            this.popover = new CUI.rte.ui.cui.PopoverManager(this.$container, this.tbType);
+            this.popover = new CUI.rte.ui.cui.PopoverManager(this.$container, this.tbType, this.useFixedInlineToolbar);
         },
 
         _getClipOffsets: function() {
@@ -332,10 +335,12 @@
         },
 
         _updateUI: function() {
-            var pos = this._calcUIPosition();
-            if (pos) {
-                this.$toolbar.offset(pos["toolbar"]);
-                this.popover.setPosition(pos["popover"]);
+            if (!this.useFixedInlineToolbar) {
+                var pos = this._calcUIPosition();
+                if (pos) {
+                    this.$toolbar.offset(pos["toolbar"]);
+                    this.popover.setPosition(pos["popover"]);
+                }
             }
         },
 

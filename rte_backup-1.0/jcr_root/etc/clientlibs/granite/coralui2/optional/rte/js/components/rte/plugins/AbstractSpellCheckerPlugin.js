@@ -187,6 +187,7 @@ CUI.rte.plugins.AbstractSpellCheckerPlugin = new Class({
             var dm = this.editorKernel.getDialogManager();
             var context = this.editorKernel.getEditContext();
             this.clearInvalidationMarks(context);
+            this.checkTextUI.setSelected(false);
             // hide if dialog is already shown
             if (dm.isShown(this.spellcheckerDialog)) {
                 dm.hide(this.spellcheckerDialog);
@@ -276,6 +277,7 @@ CUI.rte.plugins.AbstractSpellCheckerPlugin = new Class({
                     CUI.rte.DomProcessor.removeWithoutChildren(span);
                     self.misSpelledWords[misSpelledIndex] = null;
                     dm.hide(self.spellcheckerDialog);
+                    e.preventDefault();
                     e.stopPropagation();
                 }
             );

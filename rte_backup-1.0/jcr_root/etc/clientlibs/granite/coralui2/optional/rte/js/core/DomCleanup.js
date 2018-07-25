@@ -540,6 +540,12 @@ CUI.rte.DomCleanup = new Class({
         if (com.isTag(dom, "a")) {
             nameAttrib = com.getAttribute(dom, "name", true);
             var hrefAttrib = CUI.rte.HtmlRules.Links.getLinkHref(dom);
+            var linkPlugin = this.editorKernel.registeredPlugins.links;
+            var anchorEditingStyle;
+            if (linkPlugin) {
+                anchorEditingStyle = linkPlugin.getConfig().anchorEditingStyle;
+
+            }
             if (nameAttrib) {
                 if (this.isPreProcessing()) {
                     // change <a name="bla">text</a> to <a name="bla"></a>text
@@ -549,22 +555,26 @@ CUI.rte.DomCleanup = new Class({
                     while (children.length > 0) {
                         com.insertBefore(parentDom, children[0], insertRef);
                     }
-                    if (!com.ua.isWebKit && !com.ua.isGecko) {
-                        com.addClass(dom, CUI.rte.Theme.ANCHOR_CLASS);
+                    var imgReplacement = this.context.createElement("img");
+                    com.setAttribute(imgReplacement, "src",
+                            CUI.rte.Utils.getBlankImageUrl());
+                    com.setAttribute(imgReplacement, com.A_NAME_REPLACEMENT_ATTRIB,
+                            nameAttrib);
+                    if (anchorEditingStyle) {
+                        com.setAttribute(imgReplacement, "style", anchorEditingStyle);
                     } else {
-                        var imgReplacement = this.context.createElement("img");
-                        com.setAttribute(imgReplacement, "src",
-                                CUI.rte.Utils.getBlankImageUrl());
-                        com.setAttribute(imgReplacement, com.A_NAME_REPLACEMENT_ATTRIB,
-                                nameAttrib);
                         com.addClass(imgReplacement, CUI.rte.Theme.ANCHOR_CLASS);
-                        this.elementsToChange.push({
-                            "domToChange": dom,
-                            "changedDom": imgReplacement
-                        });
                     }
+                    this.elementsToChange.push({
+                        "domToChange": dom,
+                        "changedDom": imgReplacement
+                    });
                 } else if (this.processingMode == dcu.POST) {
-                    com.removeClass(dom, CUI.rte.Theme.ANCHOR_CLASS);
+                    if (anchorEditingStyle) {
+                        com.removeAttribute(dom, "style");
+                    } else {
+                        com.removeClass(dom, CUI.rte.Theme.ANCHOR_CLASS);
+                    }
                 }
             }
             if (hrefAttrib) {
@@ -575,7 +585,7 @@ CUI.rte.DomCleanup = new Class({
                     }
                 }
             }
-        } else if ((com.ua.isWebKit || com.ua.isGecko) && com.isTag(dom, "img")
+        } else if (com.isTag(dom, "img")
                 && com.isAttribDefined(dom, com.A_NAME_REPLACEMENT_ATTRIB)) {
             if (!this.isPreProcessing()) {
                 var anchorDom = this.context.createElement("a");
@@ -677,6 +687,42 @@ CUI.rte.DomCleanup = new Class({
         } else if (com.isTag(dom, [ "td", "th"] )) {
             if (this.processingMode == dcu.POST) {
                 com.removeClass(dom, CUI.rte.Theme.TABLESELECTION_CLASS);
+                if (com.isTag(dom, "th") && com.getAttribute(dom, "hiddenheader")) {
+                    var divToAdd = this.context.createElement("div");
+                    com.setAttribute(divToAdd, "hiddenheader", "true");
+                    com.removeAttribute(dom, "hiddenheader");
+                    var tablePlugin = this.editorKernel.registeredPlugins.table;
+                    if (tablePlugin) {
+                        var hiddenHeaderConfig = tablePlugin.getHiddenHeaderConfig();
+                        if (hiddenHeaderConfig.hiddenHeaderClassName) {
+                            com.addClass(divToAdd, hiddenHeaderConfig.hiddenHeaderClassName);
+                        } else if (hiddenHeaderConfig.hiddenHeaderStyle) {
+                            com.setAttribute(divToAdd, "style", hiddenHeaderConfig.hiddenHeaderStyle);
+                        }
+                        if (hiddenHeaderConfig.hiddenHeaderEditingCSS) {
+                            com.removeClass(dom, hiddenHeaderConfig.hiddenHeaderEditingCSS);
+                        } else {
+                            var stylesToRemove = [];
+                            var editingStyle = hiddenHeaderConfig.hiddenHeaderEditingStyle;
+                            editingStyle = editingStyle.trim();
+                            var attributes = editingStyle.split(';');
+                            for (var i = 0; i < attributes.length; i++) {
+                                var propNameValue = attributes[i].split(':');
+                                if (propNameValue.length == 2) {
+                                    var propName = propNameValue[0].trim();
+                                    if (propName.length) {
+                                        stylesToRemove.push(propName);
+                                    }
+                                }
+                            }
+                            com.removeInlineStyles(dom, stylesToRemove);
+                        }
+                    }
+                    while(dom.firstChild) {
+                        divToAdd.appendChild(dom.firstChild);
+                    }
+                    dom.appendChild((divToAdd));
+                }
             }
         }
     },
@@ -758,6 +804,27 @@ CUI.rte.DomCleanup = new Class({
         }
     },
 
+    handleDiv: function (dom) {
+        var com = CUI.rte.Common;
+        var dpr = CUI.rte.DomProcessor;
+        if (this.isPreProcessing()) {
+            if (com.isTag(dom, "div") && com.getAttribute(dom, "hiddenheader") === "true") {
+                var tablePlugin = this.editorKernel.registeredPlugins.table;
+                if (tablePlugin) {
+                    var hiddenHeaderConfig = tablePlugin.getHiddenHeaderConfig();
+                    if (hiddenHeaderConfig.hiddenHeaderEditingCSS) {
+                        com.addClass(dom.parentNode, hiddenHeaderConfig.hiddenHeaderEditingCSS);
+                    } else {
+                        com.addInlineStyles(dom.parentNode, hiddenHeaderConfig.hiddenHeaderEditingStyle);
+                    }
+                }
+                com.setAttribute(dom.parentNode, "hiddenheader", "true");
+                dpr.removeWithoutChildren(dom);
+            }
+        }
+
+    },
+
     handleFont: function(dom) {
         var com = CUI.rte.Common;
         if (!this.isPreProcessing()) {
@@ -780,6 +847,7 @@ CUI.rte.DomCleanup = new Class({
         this.handleImage(dom);
         this.handleTable(dom);
         this.handleSpanStyles(dom);
+        this.handleDiv(dom);
         this.handleList(dom);
         this.handlePreformattedSection(dom);
         this.handleFont(dom);

@@ -84,6 +84,7 @@
                     self.currentFindTerm = self.$findField.val();
                     self.$dialog.find(".coral-Alert").alert("hide");
                     self.setRestoreSelectionOnHide(!self.applyDialog(self.findFn, null));
+                    e.preventDefault();
                     self.transparent();
                 }
                 e.stopPropagation();
@@ -97,6 +98,7 @@
                         self.applyDialog(self.replaceFn, {
                             "replaceAll": false
                         });
+                        e.preventDefault();
                         self.transparent();
                     }
                     e.stopPropagation();
@@ -109,6 +111,7 @@
                         self.applyDialog(self.replaceFn, {
                             "replaceAll": true
                         });
+                        e.preventDefault();
                     }
                     e.stopPropagation();
                 });

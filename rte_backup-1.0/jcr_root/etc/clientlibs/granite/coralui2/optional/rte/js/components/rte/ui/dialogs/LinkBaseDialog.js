@@ -24,6 +24,10 @@
 
         toString: "LinkBaseDialog",
 
+        selectCUI: null,
+
+        targetSelectorString: ".coral-RichText-dialog--link span.coral-RichText-dialog-column--targetField",
+
         getDataType: function() {
             return "link";
         },
@@ -38,39 +42,42 @@
         initialize: function(config) {
             this.config = config;
             var self = this;
+            this.context = this.editorKernel.getEditContext();
+            this.touchScrollLimiter = this.context.getState("CUI.touchScrollLimiter");
 
             // Initialize PathBrowser
             $("span.coral-RichText-pathbrowser").pathBrowser({
-                optionLoader: config.linkOptionsLoader
+                optionLoader: config.linkOptionsLoader,
+
+                /* options for autocomplete and picker: */
+                rootPath: config.rootPath,
+                showTitles: false,
+
+                /* autocomplete configuration: */
+                optionLoaderRoot: null, // provide property path to array in return value of optionLoader, e.g. 'results.values',
+                optionValueReader: function (object) {
+                    return '' + object;
+                },
+                optionTitleReader: function (object) {
+                    return '' + object;
+                },
+
+                /* picker configuration: */
+                pickerSrc: config.pickerSrc,
+                pickerTitle: CUI.rte.Utils.i18n("dialog.link.pickerTitle"),
+                crumbRoot: {
+                    title: config.crumbRoot,
+                    icon: 'coral-Icon-home'
+                }
             });
 
-            this.$hrefField =
-                    this.$dialog.find(".coral-RichText-pathbrowser input[type='text']");
-            this.$searchButton = this.$dialog.find("button[data-type='search']");
+            this.$hrefField = config.pathbrowserPicker ?
+                                this.$dialog.find(".coral-RichText-pathbrowser input[type='text']") :
+                                this.$dialog.find("input.coral-RichText-pathbrowser[type='text']");
 
-            var wizard = CUI.rte.ui.cui.LinkBrowserBuilder.create();
-            if (wizard) {
-                var context = this.editorKernel.getEditContext();
-                var scrollLimiter = context.getState("CUI.touchScrollLimiter");
-                this.$searchButton.on("click", function(ev){
-                    var initialVal = self.$hrefField.val();
-                    // pass callback functions to call on linkage/success
-                    wizard.initialize({
-                        onLinkSuccess : function(href){
-                            self.handleLinkSuccess(href);
-                        },
-                        initialSearchPath: initialVal,
-                        dialog: self.$dialog,
-                        dialogRef: self,
-                        editorKernel: self.editorKernel,
-                        scrollLimiter: scrollLimiter
-                    });
-                });
-            } else {
-                this.$searchButton.closest(".coral-RichText-dialog-column")
-                        .addClass("is-hidden");
+            if (!this.selectCUI) {
+                this.selectCUI = new CUI.Select({element: this.targetSelectorString});
             }
-
             // Cancel all keydown events
             this.$dialog.on("keydown", this.handleKeyDown);
         },
@@ -85,6 +92,15 @@
                 this.$hrefField.focus();
                 this.$hrefField[0].select();
             } */
+            if(this.touchScrollLimiter) {
+                this.touchScrollLimiter.suspend();
+            }
+        },
+
+        onHide: function() {
+            if(this.touchScrollLimiter) {
+                this.touchScrollLimiter.reactivate()
+            }
         },
 
         handleKeyDown: function(event){
@@ -126,12 +142,10 @@
                 }
                 this.$hrefField.val(value);
             }
-            var targetBlankField = this.getFieldByType("targetBlank");
-            if (targetBlankField) {
-                var target = (this.objToEdit && this.objToEdit.target
-                    ? this.objToEdit.target.toLowerCase() : null);
-                targetBlankField.val([ target == "_blank" ? "on" : "off" ]);
-            }
+            var targetSelect = $(this.targetSelectorString).data("select");
+            var target = (this.objToEdit && this.objToEdit.target
+                ? this.objToEdit.target.toLowerCase() : null);
+            targetSelect.setValue(target || '');
             var titleField = this.getFieldByType("title");
             if(titleField){
                 value = (this.objToEdit && this.objToEdit.attributes
@@ -161,14 +175,12 @@
                         this.objToEdit.href = href;
                     }
                 }
-                var targetBlankField = this.getFieldByType("targetBlank");
-                if (targetBlankField) {
-                    var blankValue = targetBlankField.is(":checked");
-                    if (blankValue) {
-                        this.objToEdit.target = "_blank";
-                    } else {
-                        this.objToEdit.target = null;
-                    }
+                var targetSelect = $(this.targetSelectorString).data("select");
+                var target = targetSelect.getValue();
+                if (target) {
+                    this.objToEdit.target = target;
+                } else {
+                    this.objToEdit.target = null;
                 }
                 var titleField = this.getFieldByType("title");
                 if (titleField){

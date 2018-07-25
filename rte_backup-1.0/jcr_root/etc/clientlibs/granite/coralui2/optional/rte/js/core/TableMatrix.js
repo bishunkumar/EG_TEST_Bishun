@@ -713,7 +713,7 @@ CUI.rte.TableMatrix.addCellPlaceholder = function(context, cellDom) {
  */
 CUI.rte.TableMatrix.createEmptyCellMarkup = function() {
     var com = CUI.rte.Common;
-    if (com.ua.isIE) {
+    if (com.ua.isIE && !com.ua.isIE11) {
         return "<td></td>";
     }
     return "<td><br " + com.BR_TEMP_ATTRIB + "=\"brEOB\"></td>";

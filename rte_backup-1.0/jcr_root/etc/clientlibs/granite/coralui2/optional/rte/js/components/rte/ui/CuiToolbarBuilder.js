@@ -49,6 +49,7 @@
         "links#unlink": "coral-Icon coral-Icon--linkOff",
         "links#anchor": "coral-Icon coral-Icon--anchor",
         "table#table": "coral-Icon coral-Icon--table",
+        "table#createoredit": "coral-Icon coral-Icon--table",
         "table#insertcolumn-before": "coral-Icon coral-Icon--tableColumnAddLeft",
         "table#insertcolumn-after": "coral-Icon coral-Icon--tableColumnAddRight",
         "table#removecolumn": "coral-Icon coral-Icon--tableColumnRemoveCenter",
@@ -66,6 +67,7 @@
         "table#ensureparagraph" : "coral-Icon coral-Icon--textParagraph",
         "table#removetable": "coral-Icon coral-Icon--delete",
         "table#exitTableEditing": "coral-Icon coral-Icon--close",
+        "image#imageProps": "coral-Icon coral-Icon--image",
         "spellcheck#checktext": "coral-Icon coral-Icon--spellcheck",
         "undo#undo": "coral-Icon coral-Icon--undo",
         "undo#redo": "coral-Icon coral-Icon--redo",
@@ -314,10 +316,12 @@
                                     // popover trigger
                                     addClasses = this._getClassesForCommand(itemToAdd);
                                     addClasses = (addClasses ? " " + addClasses : "");
+                                    var tooltip = itemToAdd.charAt(1).toUpperCase() + itemToAdd.substr(2);
                                     tbItems.push(triggerTpl({
                                         "ref": itemToAdd,
                                         "icon": this._getIconForCommand(itemToAdd),
-                                        "addClasses": addClasses
+                                        "addClasses": addClasses,
+                                        "tooltip": tooltip
                                     }));
                                     isPrevSeparator = false;
                                 }
@@ -470,7 +474,7 @@
 
             // use existing/newly created toolbar
             var toolbar = new CUI.rte.ui.cui.ToolbarImpl(elementMap, $editable,
-                    options.tbType, options.isFullScreen);
+                    options.tbType, options.isFullScreen, options.useFixedInlineToolbar);
             for (var e = 0; e < elementCnt; e++) {
                 elements[e].notifyToolbar(toolbar);
             }
@@ -595,7 +599,10 @@
                 "lists#outdent",
                 "lists#indent",
                 "-",
-                "table#table",
+                "table#createoredit",
+                "-",
+                "image#imageProps",
+                "-",
                 "spellcheck#checktext",
                 "misctools#specialchars",
                 "misctools#sourceedit",

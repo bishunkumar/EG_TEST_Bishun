@@ -83,10 +83,11 @@ CUI.rte.XhtmlSerializer = new Class({
         var com = CUI.rte.Common;
         if (dom.nodeType == 1) {
             if (this.useShortTags && this.isShortTag(dom)) {
-                // Handle short tags that are no edit blocks here. If the empty
-                // node is an edit block, the superclass will convert it to (for example)
+                // Handle short tags that are either void or foreign elements here. If the empty
+                // node is none of those, the superclass will convert it to (for example)
                 // <p>&nbsp;</p> instead of the (invalid) <p />.
-                if (!com.isTag(dom, com.EDITBLOCK_TAGS)) {
+                var domNamespace = com.getNamespace(dom);
+                if (com.isTag(dom, com.VOID_TAGS) || domNamespace === "math" || domNamespace === "svg") {
                     var html = "<" + this.createTagStr(dom);
                     var attribsStr = this.serializeAttributes(dom);
                     if (attribsStr.length > 0) {
@@ -108,7 +109,8 @@ CUI.rte.XhtmlSerializer = new Class({
     serializeNodeLeave: function(dom) {
         var com = CUI.rte.Common;
         if (dom.nodeType == 1) {
-            if (!com.isTag(dom, com.EDITBLOCK_TAGS)) {
+            var domNamespace = com.getNamespace(dom);
+            if (com.isTag(dom, com.VOID_TAGS) || domNamespace === "math" || domNamespace === "svg") {
                 if (this.useShortTags && this.isShortTag(dom)) {
                     return "";
                 }

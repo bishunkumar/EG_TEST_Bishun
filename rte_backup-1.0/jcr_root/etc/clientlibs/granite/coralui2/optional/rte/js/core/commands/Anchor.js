@@ -31,29 +31,28 @@ CUI.rte.commands.Anchor = new Class({
         var com = CUI.rte.Common;
         var dpr = CUI.rte.DomProcessor;
         var nodeList = execDef.nodeList;
-        var name = execDef.value;
+        var name = execDef.value.anchorValue;
+        var anchorEditingStyle = execDef.value.pluginConfig.anchorEditingStyle;
         var context = execDef.editContext;
         var anchors = [ ];
         nodeList.getNamedAnchors(context, anchors, false);
         if (anchors.length > 0) {
             // modify existing anchor(s)
             for (var i = 0; i < anchors.length; i++) {
-                this.applyAnchorProperties(anchors[i].dom, name);
+                this.applyAnchorProperties(anchors[i].dom, name, anchorEditingStyle);
             }
         } else {
             // create new anchor
             var tagName;
-            var attributes =  {
-                "class": CUI.rte.Theme.ANCHOR_CLASS
-            };
-            // Webkit and Gecko can't edit "a" elements directly, hence substitute to "img" element
-            if (com.ua.isWebKit || com.ua.isGecko) {
-                tagName = "img";
-                attributes[com.A_NAME_REPLACEMENT_ATTRIB] = name;
+            var attributes =  { };
+            if (anchorEditingStyle) {
+                attributes["style"] = anchorEditingStyle;
             } else {
-                tagName = "a";
-                attributes["name"] = name;
+                attributes["class"] = CUI.rte.Theme.ANCHOR_CLASS;
             }
+            // Browsers can't properly edit "a" elements directly, hence substitute to "img" element e.g. CUI-4662
+            tagName = "img";
+            attributes[com.A_NAME_REPLACEMENT_ATTRIB] = name;
             var selection = execDef.selection;
             var dom = dpr.createNode(context, tagName, attributes);
             dpr.insertElement(context, dom, selection.startNode, selection.startOffset);
@@ -66,7 +65,7 @@ CUI.rte.commands.Anchor = new Class({
      * @param {String} name Name of the anchor
      * @private
      */
-    applyAnchorProperties: function(dom, name) {
+    applyAnchorProperties: function(dom, name, anchorEditingStyle) {
         var com = CUI.rte.Common;
         // some browsers may use a substitute, so we'll have to use a special attribute
         // instead
@@ -75,7 +74,11 @@ CUI.rte.commands.Anchor = new Class({
         } else {
             com.setAttribute(dom, "name", name);
         }
-        com.setAttribute(dom, "class", CUI.rte.Theme.ANCHOR_CLASS);
+        if (anchorEditingStyle) {
+            com.setAttribute("style", anchorEditingStyle);
+        } else {
+            com.setAttribute(dom, "class", CUI.rte.Theme.ANCHOR_CLASS);
+        }
     },
 
     removeAnchorFromDom: function(execDef) {
@@ -100,7 +103,9 @@ CUI.rte.commands.Anchor = new Class({
     },
 
     execute: function(execDef) {
-        if (execDef.value) {
+        var value = execDef.value;
+        var anchorValue = value.anchorValue;
+        if (anchorValue) {
             this.addAnchorToDom(execDef);
         } else {
             this.removeAnchorFromDom(execDef);

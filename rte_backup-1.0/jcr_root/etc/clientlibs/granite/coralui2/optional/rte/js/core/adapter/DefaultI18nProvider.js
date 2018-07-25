@@ -81,14 +81,47 @@ CUI.rte.DefaultI18nProvider = new Class({
 });
 
 CUI.rte.DefaultI18nProvider.DEFAULT_TRANSLATIONS = {
+        "dialog.apply": {
+            "en": "Apply"
+        },
+        "dialog.cancel": {
+            "en": "Cancel"
+        },
         "dialogs.find.matchCase": {
             "en": "Match Case"
         },
-        "dialog.link.openInNewPage": {
-            "en": "Open in new page"
+        "dialog.anchor.remove": {
+            "en": "Remove"
+        },
+        "dialog.find.find": {
+            "en": "Find"
+        },
+        "dialog.link.path": {
+            "en": "Path"
+        },
+        "dialog.link.path_picker": {
+            "en": "Path Picker"
+        },
+        "dialog.link.target": {
+            "en": "Target"
+        },
+        "dialog.link.same_tab": {
+            "en": "Same Tab"
+        },
+        "dialog.link.new_tab": {
+            "en": "New Tab"
+        },
+        "dialog.link.parent_frame": {
+            "en": "Parent Frame"
+        },
+        "dialog.link.pickerTitle": {
+            "en": "Choose a target path"
+        },
+        "dialog.link.top_frame": {
+            "en": "Top Frame"
         },
         "dialog.link.titleFieldPlaceHolder": {
-            "en": "Title"
+            "en": "Alt Text"
         },
         "dialog.pastePlainText.pasteAreaPlaceHolder": {
             "en": "Please paste your text here...."
@@ -159,17 +192,23 @@ CUI.rte.DefaultI18nProvider.DEFAULT_TRANSLATIONS = {
         "dialog.tableAndCellProps.baselineAlign": {
             "en": "Baseline"
         },
+        "dialog.tableAndCellProps.cellType": {
+          "en": "Cell Type"
+        },
+        "dialog.tableAndCellProps.hiddenHeader": {
+            "en": "Hidden Header"
+        },
         "dialog.tableAndCellProps.headerAttrib": {
-            "en": "Header attribute"
+            "en": "Header"
         },
         "dialog.tableAndCellProps.idAttrib": {
-            "en": "Id attribute"
+            "en": "Id"
         },
         "dialog.tableAndCellProps.scopeAttrib": {
-            "en": "Scope attribute"
+            "en": "Scope"
         },
         "dialog.tableAndCellProps.noneScopeAttrib": {
-            "en": "Scope attribute"
+            "en": "Scope"
         },
         "dialog.tableAndCellProps.rowScope": {
             "en": "Row"
@@ -348,6 +387,12 @@ CUI.rte.DefaultI18nProvider.DEFAULT_TRANSLATIONS = {
         },
         "plugins.image.alignNone": {
             "en": "None"
+        },
+        "plugins.image.alignInherit": {
+            "en": "Inherit"
+        },
+        "plugins.image.imageTitle": {
+            "en": "Image"
         },
         "plugins.image.noAlign": {
             "en": "No alignment"
@@ -571,6 +616,15 @@ CUI.rte.DefaultI18nProvider.DEFAULT_TRANSLATIONS = {
         "plugins.table.createTable": {
             "en": "Create table"
         },
+        "plugins.table.ensureparagraph": {
+          "en": "Ensure Paragraph"
+        },
+        "plugins.table.modifytableandcell": {
+          "en": "Edit Table and Cell Properties"
+        },
+        "plugins.table.exitTableEditing": {
+          "en": "Exit Table Editing"
+        },
         "plugins.undoRedo.undoTitle": {
             "en": "Undo"
         },
@@ -606,5 +660,8 @@ CUI.rte.DefaultI18nProvider.DEFAULT_TRANSLATIONS = {
         },
         "plugins.control.closeText": {
             "en": "Finish editing the text."
+        },
+        "plugins.control.saveTitle": {
+            "en": "Save"
         }
 };

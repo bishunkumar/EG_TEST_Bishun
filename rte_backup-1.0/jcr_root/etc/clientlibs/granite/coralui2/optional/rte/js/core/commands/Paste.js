@@ -69,7 +69,7 @@ CUI.rte.commands.Paste = new Class({
 
         // preprocess plain text if necessary
         var plainText;
-        if (text) {
+        if (text !== null && text !== undefined) {
             plainText = text;
         } else {
             var helperDiv = context.doc.createElement("div");
@@ -830,6 +830,12 @@ CUI.rte.commands.Paste = new Class({
         // cleanup first
         var pastedDom = execDef.value.dom;
         this.cleanUpDom(context, execDef.component, pastedDom, execDef.value.pasteRules);
+
+        // this would reconstruct the pastedDom and in the process remove do html validation and remove nested paragraphs
+        // eg. if pastedDom is <p><p>text</p></p> it would be converted to <p></p><p>text</p><p></p>
+        pastedDom.innerHTML = pastedDom.innerHTML;
+        // remove the empty paragraphs created above
+        com.removeEmptyChildNodes(pastedDom, "p");
 
         // detect if we're pasting a table into another table
         var pSel;

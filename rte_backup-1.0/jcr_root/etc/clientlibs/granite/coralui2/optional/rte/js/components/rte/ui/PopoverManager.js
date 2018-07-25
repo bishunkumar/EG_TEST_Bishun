@@ -42,13 +42,15 @@
 
         _isHiding: false,
 
+        useFixedInlineToolbar: false,
 
-        construct: function($container, tbType) {
+        construct: function($container, tbType, useFixedInlineToolbar) {
             this.$popover = null;
             this.$popoverTrigger = null;
             this.$container = $container;
             this.triggerToElements = [ ];
             this.tbType = tbType;
+            this.useFixedInlineToolbar = useFixedInlineToolbar;
         },
 
         _calcArrowTop: function(pos, toolbarOffs, arrowSize) {
@@ -233,7 +235,7 @@
                 // must be shown before calculating positions, as jQuery will miscalculate
                 // position:absolute otherwise
                 this.$popover.popover({
-                    pointAt: null,
+                    pointAt: (this.useFixedInlineToolbar ? $trigger : null),
                     preventAutoHide: true
                 }).popover("show");
                 this.$popover.find(".coral-Popover-arrow").css({

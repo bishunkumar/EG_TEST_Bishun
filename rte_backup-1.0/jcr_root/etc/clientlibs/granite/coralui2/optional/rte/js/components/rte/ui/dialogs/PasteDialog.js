@@ -80,13 +80,17 @@
                 var win = this.$iframe.prop("contentWindow");
                 win.document.open();
                 win.document.write("<html><head><style type=\"text/css\">"
-                    + "body{border:.0625rem solid #2d2d2d;margin:0;padding:3px;cursor:text;"
+                    + "body{border:.0625rem solid #2d2d2d;margin:0;padding:3px;cursor:text;height:94%;"
                     + "font-family:sans-serif;font-size:13px;color:#dcdcdc}"
                     + "body:focus{border-color:#3287d2}"
                     + "</style></head>"
                     + "<body></body></html>");
                 win.document.designMode = "on";
                 win.document.close();
+            } else {
+                this.$pasteBox.click(function(e) {
+                    e.stopPropagation();
+                });
             }
             if (!CUI.rte.Common.ua.isTouch) {
                 var self = this;

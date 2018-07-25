@@ -52,14 +52,75 @@ CUI.rte.plugins.TablePlugin = new Class({
         return true;
     },
 
+    // overrides CUI.rte.plugins.AbstractTablePlugin#notifyPluginConfig
+    notifyPluginConfig: function(pluginConfig) {
+        CUI.rte.Utils.scope(this.superClass.notifyPluginConfig, this)(pluginConfig);
+        if (this.isAnyFeatureEnabled() && this.config.features !== "*") {
+            if (this.config.features.indexOf("createoredit") === -1) {
+                this.config.features.push("createoredit");
+            }
+            if (this.config.features.indexOf("exitTableEditing") === -1) {
+                this.config.features.push("exitTableEditing");
+            }
+        }
+        CUI.rte.Utils.applyDefaults(pluginConfig, {
+            "tooltips": {
+                "mergecells-right": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.mergeRight")
+                },
+                "mergecells-down": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.mergeDown")
+                },
+                "mergecells": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.mergeCells")
+                },
+                "splitcell-horizontal": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.splitHor")
+                },
+                "splitcell-vertical": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.splitVert")
+                },
+                "selectrow": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.selectRow")
+                },
+                "selectcolumn": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.selectColumn")
+                },
+                "ensureparagraph": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.ensureparagraph")
+                },
+                "modifytableandcell": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.modifytableandcell")
+                },
+                "removetable": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.removeTable")
+                },
+                "exitTableEditing": {
+                    "title": CUI.rte.Utils.i18n("plugins.table.exitTableEditing")
+                }
+            }
+        });
+    },
+
+    // overrides CUI.rte.plugins.Plugin#isFeatureEnabled
+    isFeatureEnabled: function(feature) {
+        if (feature === "mergecells-right" || feature === "mergecells-down" || feature === "splitcell-horizontal"
+          || feature === "splitcell-vertical" || feature === "insertrow-before" || feature === "insertrow-after"
+          || feature === "insertcolumn-before" || feature === "insertcolumn-after") {
+            feature = feature.split("-")[0];
+        } else if (feature === "modifytableandcell") {
+            return CUI.rte.Utils.scope(this.superClass.isFeatureEnabled, this)("table") ||
+                       CUI.rte.Utils.scope(this.superClass.isFeatureEnabled, this)("cellprops");
+        }
+        return CUI.rte.Utils.scope(this.superClass.isFeatureEnabled, this)(feature);
+    },
+
     switchToTableToolbar: function() {
         if (!this.editorKernel.hasBackgroundToolbar(this.tableToolbarTbType)) {
             this.editorKernel.addBackgroundToolbar({
                 "tbType": this.tableToolbarTbType,
                 "isFullScreen": true
             });
-            this.editorKernel.addPluginListener("commandexecuted", this.destroyTableEditToolbar, this,
-                this, false);
         }
         this.editorKernel.setActiveToolbar(this.tableToolbarTbType);
     },
@@ -79,12 +140,6 @@ CUI.rte.plugins.TablePlugin = new Class({
             this.switchToTableToolbar();
         }
 
-    },
-
-    destroyTableEditToolbar: function(event) {
-        if (event.cmd == "fullscreen-finish") {
-            this.editorKernel.removeBackgroundToolbar(this.tableToolbarTbType);
-        }
     },
 
     showTableAndCellPropsUI: function(propConfig, context) {
@@ -110,6 +165,13 @@ CUI.rte.plugins.TablePlugin = new Class({
                 }
             }
         }
+        var hiddenHeaderConfig = this.getHiddenHeaderConfig();
+        if (hiddenHeaderConfig.hiddenHeaderEditingCSS) {
+            cellConfig["hiddenHeaderEditingCSS"] = hiddenHeaderConfig.hiddenHeaderEditingCSS;
+        } else {
+            cellConfig["hiddenHeaderEditingStyle"] = hiddenHeaderConfig.hiddenHeaderEditingStyle;
+        }
+        cellConfig["handleHiddenHeader"] = "true";
         if (cmd == "modifytableandcell" && tableAndCellConfig) {
             this.editorKernel.relayCmd("modifytable", tableConfig);
             this.editorKernel.relayCmd("modifyCell", cellConfig);
@@ -142,7 +204,7 @@ CUI.rte.plugins.TablePlugin = new Class({
 
     // overrides CUI.rte.plugins.AbstractTablePlugin#execute
     execute: function(cmdId, value, options) {
-        var cmd = cmdId;
+        var cmd = cmdId, isInsideTable;
         var sepPos = cmdId.indexOf(".", cmdId);
         if (sepPos > 0) {
             cmd = cmdId.substring(0, sepPos);
@@ -170,6 +232,13 @@ CUI.rte.plugins.TablePlugin = new Class({
             this.modifyTableAndCell(options);
         } else if (cmd == "exitTableEditing") {
             this.editorKernel.setActiveToolbar("fullscreen");
+        } else if (cmd === "createoredit") {
+            isInsideTable = this.editorKernel.queryState("table");
+            if (!isInsideTable && !this.isFeatureEnabled("table")) {
+                return;
+            }
+            options.command = "table#createoredit";
+            CUI.rte.Utils.scope(this.superClass.execute, this)("table", value, options);
         } else {
             CUI.rte.Utils.scope(this.superClass.execute, this)(cmdId, value, options);
         }
@@ -206,7 +275,9 @@ CUI.rte.plugins.TablePlugin = new Class({
                 var cellInfo = tableMatrix.getCellInfo(tableInfo["singleCell"]);
                 var pNode = tableInfo["tableDom"].parentNode;
                 var tableIndex = com.getChildIndex(tableInfo["tableDom"]);
-                this.mergeCellsUI.setDisabled(true);
+                if (this.mergeCellsUI) {
+                    this.mergeCellsUI.setDisabled(true);
+                }
                 if (this.mergeCellsDownUI && cellInfo.isLastRow) {
                     this.mergeCellsDownUI.setDisabled(true);
                 }
@@ -233,7 +304,7 @@ CUI.rte.plugins.TablePlugin = new Class({
                 }
             } else {
                 this.editorKernel.disableToolbar(this.tableToolbarTbType);
-                if (cellSel.selectionProps.isRect) {
+                if (cellSel && cellSel.selectionProps.isRect) {
                     this.mergeCellsUI.setDisabled(false);
                 }
                 this.modifyTableOrCellUI.setDisabled(false);
@@ -250,9 +321,25 @@ CUI.rte.plugins.TablePlugin = new Class({
 
     // overrides CUI.rte.plugins.AbstractTablePlugin#initializeUI
     initializeUI: function(tbGenerator) {
-        CUI.rte.Utils.scope(this.superClass.initializeUI, this)(tbGenerator);
         var plg = CUI.rte.plugins;
         var isTableMode = this.isTableMode();
+        /**
+         * Even if a single feature is enabled, we need a table button in the FSM toolbar to be able to switch to
+         * tabletoolbar mode. Since it should not be mandatory to enable "table" feature to be able to use other
+         * features of table plugin, we are introducing a new setting createoredit. By using "table#creatoredit"
+         * instead of "table#table" in uiSettings, user would be able to see the table button in FSM toolbar
+         * even if "table" feature is disabled and some other feature(s) is(are) enabled.
+         * We are still supporting "table#table" (for backward compatibility). Using "table#table" in uiSettings
+         * will show table button in FSM toolbar only if "table" feature is enabled.
+         */
+        this.tableUI = tbGenerator.createElement("table", this, false, this.getTooltip("table"));
+        tbGenerator.addElement("table", plg.Plugin.SORT_TABLE, this.tableUI, 10);
+
+        this.createOrEditTableUI = tbGenerator.createElement("createoredit", this, false, this.getTooltip("table"));
+        tbGenerator.addElement("table", plg.Plugin.SORT_TABLE, this.createOrEditTableUI, 20);
+
+        this.initializeTableModeUI(tbGenerator);
+
         if (this.isFeatureEnabled("mergecells")) {
             this.mergeCellsRightUI = tbGenerator.createElement("mergecells-right", this,
                     false, this.getTooltip("mergecells-right"), null, {
@@ -328,7 +415,7 @@ CUI.rte.plugins.TablePlugin = new Class({
         }
 
         this.exitTableEditingUI = tbGenerator.createElement("exitTableEditing", this, false,
-              this.getTooltip("table"), "x-edit-table-properties");
+              this.getTooltip("exitTableEditing"));
         tbGenerator.addElement("table", plg.Plugin.SORT_TABLE_TABLEMODE + 8,
               this.exitTableEditingUI, 10);
     }

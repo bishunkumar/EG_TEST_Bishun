@@ -66,6 +66,10 @@
                     dialog = new CUI.rte.ui.cui.TableAndCellPropsDialog();
                     dialog.attach(config, $container, this.editorKernel);
                     break;
+                case CUI.rte.ui.DialogManager.DLG_IMAGEPROPS:
+                    dialog = new CUI.rte.ui.cui.ImagePropsDialog();
+                    dialog.attach(config, $container, this.editorKernel, true);
+                    break;
             }
             return dialog;
         },

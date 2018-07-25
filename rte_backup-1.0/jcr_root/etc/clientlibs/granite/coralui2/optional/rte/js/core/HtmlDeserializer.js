@@ -83,6 +83,9 @@ CUI.rte.HtmlDeserializer.DUPLICATE_RULES = [ [
         /(<a[^>]*?href=")([^"]*?)(")((.|\n|\r)*?>)/gi,
         "$1$2$3 " + CUI.rte.Common.HREF_ATTRIB + "=\"$2\"$4"
     ], [
+        /(<a[^>]*?href=')([^']*?)(')((.|\n|\r)*?>)/gi,
+        "$1$2$3 " + CUI.rte.Common.HREF_ATTRIB + "=\"$2\"$4"
+    ], [
         /(<img[^>]*?src=")([^"]*?)(")((.|\n|\r)*?>)/gi,
         "$1$2$3 " + CUI.rte.Common.SRC_ATTRIB + "=\"$2\"$4"
     ]

@@ -77,7 +77,7 @@ core/plugins/MiscToolsPlugin.js
 core/plugins/ParagraphFormatPlugin.js
 core/plugins/SubSuperScriptPlugin.js
 core/plugins/AbstractTablePlugin.js
-core/plugins/ImagePlugin.js
+core/plugins/AbstractImagePlugin.js
 core/plugins/UndoRedoPlugin.js
 
 core/ui/Toolkit.js
@@ -106,6 +106,7 @@ components/rte/commands/CUITable.js
 components/rte/plugins/AbstractSpellCheckerPlugin.js
 components/rte/plugins/ControlPlugin.js
 components/rte/plugins/FullScreenPlugin.js
+components/rte/plugins/ImagePlugin.js
 components/rte/plugins/StylesPlugin.js
 components/rte/plugins/TablePlugin.js
 components/rte/ui/ToolkitImpl.js
@@ -125,6 +126,7 @@ components/rte/ui/dialogs/AbstractDialog.js
 components/rte/ui/dialogs/LinkBaseDialog.js
 components/rte/ui/dialogs/AnchorDialog.js
 components/rte/ui/dialogs/FindReplaceDialog.js
+components/rte/ui/dialogs/ImagePropsDialog.js
 components/rte/ui/dialogs/PasteDialog.js
 components/rte/ui/dialogs/SpecialCharsDialog.js
 components/rte/ui/dialogs/SpellcheckerDialog.js
@@ -135,10 +137,10 @@ components/rte/ui/CuiDialogHelper.js
 components/rte/ui/fsm/FullScreenHelper.js
 components/rte/ui/fsm/TouchScrollLimiter.js
 components/rte/ui/fsm/DefaultFullScreenAdapter.js
-components/rte/ui/wizards/AbstractLinkWizard.js
 
 components/cui-rte.templates.js
 components/CUI.RichText.js
+components/HandleBars.Helpers.js
 
 components/rte/init.js
 

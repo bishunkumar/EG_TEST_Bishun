@@ -2386,12 +2386,13 @@ CUI.rte.DomProcessor.StructuralNode = new Class({
                 } else {
                     baseNode.appendChild(childToProcess.createNewTextNode(context));
                     var overflowParent = childText.parentNode;
+                    var overflowRef = childText.nextSibling
                     overflowParent.removeChild(childText);
                     if (childToProcess.startPos > 0) {
                         var overflowText = childText.nodeValue.substring(0,
                                 childToProcess.startPos);
                         com.addTextNode(context.createTextNode(overflowText),
-                                overflowParent, overflowParent.firstChild);
+                                overflowParent, overflowRef);
                     } else {
                         com.removeNodesWithoutContent(context, overflowParent);
                     }

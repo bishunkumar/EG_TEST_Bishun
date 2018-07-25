@@ -55,6 +55,13 @@ CUI.rte.plugins.LinkPlugin = new Class({
      */
 
     /**
+     * @cfg {String} anchorEditingStyle
+     * Style String to be applied on the anchor to make it visible while editing RTE.
+     * If this configuration is not provided, the CSS class {@link CUI.rte.Theme.ANCHOR_CLASS} will be used.
+     * @since 6.2
+     */
+
+    /**
      * @private
      */
     linkDialog: null,
@@ -110,6 +117,9 @@ CUI.rte.plugins.LinkPlugin = new Class({
                     "linkRules": linkRules,
                     "editorKernel": this.editorKernel,
                     "command": this.pluginId + "#modifylink"
+                },
+                "dialogProperties": {
+                    "pathbrowserPicker": this.hasPathPicker()
                 }
             };
             if (this.config.linkDialogConfig) {
@@ -162,7 +172,7 @@ CUI.rte.plugins.LinkPlugin = new Class({
                     }
                     delete addDialogConfig.linkAttributes;
                 }
-                dialogConfig.dialogProperties = addDialogConfig;
+                CUI.rte.Utils.applyDefaults(dialogConfig.dialogProperties, addDialogConfig);
             }
             if (linkRules.targetConfig) {
                 if (linkRules.targetConfig.mode != "blank") {
@@ -249,7 +259,8 @@ CUI.rte.plugins.LinkPlugin = new Class({
             var defaultConfig = {
                 execute: function(value) {
                     CUI.rte.Selection.restoreNativeSelection(context, plugin.savedRange);
-                    editorKernel.relayCmd("anchor", value);
+                    editorKernel.relayCmd("anchor", { anchorValue : value,
+                        pluginConfig : plugin.config});
                 }
             };
             var dialogConfig;
@@ -362,8 +373,15 @@ CUI.rte.plugins.LinkPlugin = new Class({
 
     isHeadless: function(cmd, value) {
         return (cmd === "unlink");
-    }
+    },
 
+    hasPathPicker: function() {
+        return false;
+    },
+
+    getConfig: function () {
+        return this.config;
+    }
 });
 
 /**

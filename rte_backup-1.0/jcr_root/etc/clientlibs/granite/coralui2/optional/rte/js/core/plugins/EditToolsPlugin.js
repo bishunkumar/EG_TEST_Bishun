@@ -251,6 +251,12 @@ CUI.rte.plugins.EditToolsPlugin = new Class({
 
     prePasteBodyStyle: null,
 
+    _pageXOffsetBeforePaste: null,
+
+    _pageYOffsetBeforePaste: null,
+
+    _editorHeightBeforePaste: null,
+
     _init: function(editorKernel) {
         this.inherited(arguments);
         if (!CUI.rte.Common.ua.isWebKit) {
@@ -339,6 +345,12 @@ CUI.rte.plugins.EditToolsPlugin = new Class({
             this.prePasteBodyStyle = $body.attr('style');
             $body.attr('style', '');
         }
+
+        // save page x,y offsets and the editor height to restore after paste
+        this._pageXOffsetBeforePaste = context.win.pageXOffset;
+        this._pageYOffsetBeforePaste = context.win.pageYOffset;
+        this._editorHeightBeforePaste = context.root.offsetHeight;
+
         CUI.rte.Utils.defer(this.afterPaste, 1, this, [ context ]);
     },
 
@@ -388,6 +400,10 @@ CUI.rte.plugins.EditToolsPlugin = new Class({
                     sel.ensureCaretVisibility(context, context.iframe,
                         this.geckoPreferredScrollingOffset);
                 }, 1, this);
+            }
+            if (!context.iFrame) {
+                context.win.scrollTo(this._pageXOffsetBeforePaste,
+                    this._pageYOffsetBeforePaste + context.root.offsetHeight - this._editorHeightBeforePaste);
             }
         }
 

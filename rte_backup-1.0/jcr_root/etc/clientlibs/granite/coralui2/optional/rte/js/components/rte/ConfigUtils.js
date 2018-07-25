@@ -87,10 +87,13 @@
                 }
 
                 var uiSettings = config["uiSettings"];
-                if (uiSettings && uiSettings.cui && uiSettings.cui.inline
-                    && uiSettings.cui.inline.popovers) {
-                    validatePopovers(uiSettings.cui.inline.popovers);
-                    validatePopovers(uiSettings.cui.fullscreen.popovers);
+                if (uiSettings && uiSettings.cui) {
+                    if (uiSettings.cui.inline && uiSettings.cui.inline.popovers) {
+                        validatePopovers(uiSettings.cui.inline.popovers);
+                    }
+                    if (uiSettings.cui.fullscreen && uiSettings.cui.fullscreen.popovers) {
+                        validatePopovers(uiSettings.cui.fullscreen.popovers);
+                    }
                 }
                 return config;
             },
@@ -144,13 +147,13 @@
                 var $container = CUI.rte.UIUtils.getUIContainer($editable);
                 var $toolbar = CUI.rte.UIUtils.getToolbar($editable);
 
-                function processConfig(config) {
+                function processConfig(config, useFixedInlineToolbar) {
                     config = CUI.rte.ConfigUtils.getValidConfig(config);
                     if (configCallback) {
                         config = configCallback(config);
                     }
                     config = CUI.rte.ConfigUtils.mergeConfigAndFeatures(config, features);
-                    rte.start(config);
+                    rte.start(config, useFixedInlineToolbar);
                     $editable.removeClass("is-initializing");
                 }
 
@@ -173,19 +176,20 @@
                     processConfig(config);
                 } else {
                     var configPath = $editable.data("config-path");
+                    var useFixedInlineToolbar = $editable.data("use-fixed-inline-toolbar");
                     if (configPath) {
                         $.ajax({
                             "url": configPath,
                             "dataType": "json",
                             "success": function(data) {
-                                processConfig(data);
+                                processConfig(data, useFixedInlineToolbar);
                             },
                             "error": function() {
-                                processConfig({ });
+                                processConfig({ }, useFixedInlineToolbar);
                             }
                         });
                     } else {
-                        processConfig(config);
+                        processConfig(config, useFixedInlineToolbar);
                     }
                 }
 

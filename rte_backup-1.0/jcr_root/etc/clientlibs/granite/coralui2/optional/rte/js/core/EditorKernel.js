@@ -236,7 +236,7 @@ CUI.rte.EditorKernel = new Class({
      * @private
      * @type Boolean
      */
-    isEventingDisabled: false,
+    isEventingDisabled: true,
 
     /**
      * Flag that determines if the current focus blur is only a temporary blur. This is
@@ -1082,6 +1082,7 @@ CUI.rte.EditorKernel = new Class({
             this.isEventingDisabled = false;
             this.hasFocus = true;
             if (!this.isFocusHandlingDisabled) {
+                this.fireUIEvent("focusgained");
                 this.enableToolbar();
                 this.updateToolbar();
             }
@@ -1105,6 +1106,7 @@ CUI.rte.EditorKernel = new Class({
             this.isTemporaryBlur = false;
             this.hasFocus = false;
             if (!this.isFocusHandlingDisabled) {
+                this.fireUIEvent("focuslost");
                 CUI.rte.Utils.defer(function() {
                     if (this.isEventingDisabled && !this.isTemporaryBlur &&
                             !this.isFocusHandlingDisabled) {
@@ -1872,6 +1874,8 @@ CUI.rte.EditorKernel = new Class({
      *   <li>disablesourceedit - signals that WYSIWYG edit mode is requested</li>
      *   <li>dialogshow - signals that a dependent dialog has been shown</li>
      *   <li>dialoghide - signals that a dependent dialog has been hidden</li>
+     *   <li>focusgained - signals that the text component has been focussed</li>
+     *   <li>focuslost - signals that the text component has been blurred</li>
      * </ul>
      * @param {String} eventName Event name (see doc for supported values)
      * @param {Function} fn Event handler function
@@ -2009,7 +2013,7 @@ CUI.rte.EditorKernel = new Class({
         var toolbar = this.backgroundToolbars[tbType];
         if (toolbar) {
             toolbar.destroy();
-            this.backgroundToolbars[tbType] = undefined;
+            delete this.backgroundToolbars[tbType];
         }
     },
 
@@ -2022,6 +2026,7 @@ CUI.rte.EditorKernel = new Class({
             var tb = this.toolbar;
             this.toolbar.finishEditing();
             this.toolbar = this.backgroundToolbars[tbType];
+            delete this.backgroundToolbars[tbType];
             this.toolbar.startEditing(this);
             this.backgroundToolbars[tb.tbType] = tb;
             this.tbBuilder.notifyToolbar(this.toolbar, true);
@@ -2087,6 +2092,18 @@ CUI.rte.EditorKernel = new Class({
         if (this.toolbar) {
             this.toolbar.finishEditing();
             this.toolbar.destroy();
+        }
+    },
+
+    destroyBackgroundToolbars: function() {
+        var tbType, toolbar;
+        for (tbType in this.backgroundToolbars) {
+            if (this.backgroundToolbars.hasOwnProperty(tbType)) {
+                toolbar = this.backgroundToolbars[tbType];
+                toolbar.finishEditing();
+                toolbar.destroy();
+                delete this.backgroundToolbars[tbType];
+            }
         }
     },
 
